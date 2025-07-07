@@ -6,19 +6,19 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-class Dialog;
+class LogIn_Dialog;
 }
 QT_END_NAMESPACE
 
-class Dialog : public QDialog
+class LogIn_Dialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    Dialog(QWidget *parent = nullptr);
-    ~Dialog();
+    LogIn_Dialog(QWidget *parent = nullptr);
+    ~LogIn_Dialog();
 
 private:
-    Ui::Dialog *ui;
+    Ui::LogIn_Dialog *ui;
 };
 #endif // LOGIN_DIALOG_H

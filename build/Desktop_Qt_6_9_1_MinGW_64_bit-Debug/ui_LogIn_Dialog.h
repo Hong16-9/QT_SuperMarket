@@ -15,30 +15,30 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_Dialog
+class Ui_LogIn_Dialog
 {
 public:
 
-    void setupUi(QDialog *Dialog)
+    void setupUi(QDialog *LogIn_Dialog)
     {
-        if (Dialog->objectName().isEmpty())
-            Dialog->setObjectName("Dialog");
-        Dialog->resize(800, 600);
+        if (LogIn_Dialog->objectName().isEmpty())
+            LogIn_Dialog->setObjectName("LogIn_Dialog");
+        LogIn_Dialog->resize(800, 600);
 
-        retranslateUi(Dialog);
+        retranslateUi(LogIn_Dialog);
 
-        QMetaObject::connectSlotsByName(Dialog);
+        QMetaObject::connectSlotsByName(LogIn_Dialog);
     } // setupUi
 
-    void retranslateUi(QDialog *Dialog)
+    void retranslateUi(QDialog *LogIn_Dialog)
     {
-        Dialog->setWindowTitle(QCoreApplication::translate("Dialog", "Dialog", nullptr));
+        LogIn_Dialog->setWindowTitle(QCoreApplication::translate("LogIn_Dialog", "Dialog", nullptr));
     } // retranslateUi
 
 };
 
 namespace Ui {
-    class Dialog: public Ui_Dialog {};
+    class LogIn_Dialog: public Ui_LogIn_Dialog {};
 } // namespace Ui
 
 QT_END_NAMESPACE
