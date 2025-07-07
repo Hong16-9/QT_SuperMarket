@@ -4,11 +4,13 @@
 #include <QMainWindow>
 #include<QSqlDatabase>
 #include<QSqlQuery>
+#include<QListWidgetItem>
+
 
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-class MainWindow;
+class Check_Mainwindow;
 }
 QT_END_NAMESPACE
 
@@ -29,20 +31,20 @@ public:
     QString category;
 };
 
-class MainWindow : public QMainWindow
+class Check_Mainwindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    Check_Mainwindow(QWidget *parent = nullptr);
+    ~Check_Mainwindow();
 
 
 private slots:
-    void on_chooselistWidget_itemDoubleClicked(QListWidgetItem *item);
+    void on_chooselistWidget_itemDoubleClicked();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::Check_Mainwindow *ui;
     void setupDatabase();
     void updateProduct(const QString* category);
     void categoryProduct();

@@ -5,7 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-class MainWindow;
+class Mainwindow;
 }
 QT_END_NAMESPACE
 
@@ -18,6 +18,6 @@ public:
     ~MainWindow();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::Mainwindow *ui;
 };
 #endif // PRODUCT_H
