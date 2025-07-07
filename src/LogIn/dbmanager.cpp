@@ -255,4 +255,5 @@ QString DBManager::encryptPassword(const QString& password)
 {
     return QCryptographicHash::hash(password.toUtf8(),
                                     QCryptographicHash::Sha256).toHex();
+    //SHA-256哈希存储对数据库中密码进行加密
 }
