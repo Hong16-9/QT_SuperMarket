@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    LogIn_Dialog w;
+    LoginDialog w;
     w.show();
     return a.exec();
 }

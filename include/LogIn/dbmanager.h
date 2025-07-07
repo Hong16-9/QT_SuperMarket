@@ -46,7 +46,7 @@ public:
     bool isOpen() const;
     QString lastError() const;
 
-    // 实用函数
+    // 实用函数（密码加密）
     static QString encryptPassword(const QString& password);
 
 private:
