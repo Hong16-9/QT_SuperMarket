@@ -15,6 +15,7 @@ class LoginDialog : public QDialog
     Q_OBJECT
 
 public:
+<<<<<<< HEAD
     LoginDialog(QWidget *parent = nullptr);
     ~LoginDialog();
 

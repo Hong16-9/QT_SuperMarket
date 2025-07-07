@@ -31,14 +31,14 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 QT_WARNING_DISABLE_GCC("-Wuseless-cast")
 namespace {
-struct qt_meta_tag_ZN6DialogE_t {};
+struct qt_meta_tag_ZN12LogIn_DialogE_t {};
 } // unnamed namespace
 
-template <> constexpr inline auto Dialog::qt_create_metaobjectdata<qt_meta_tag_ZN6DialogE_t>()
+template <> constexpr inline auto LogIn_Dialog::qt_create_metaobjectdata<qt_meta_tag_ZN12LogIn_DialogE_t>()
 {
     namespace QMC = QtMocConstants;
     QtMocHelpers::StringRefStorage qt_stringData {
-        "Dialog"
+        "LogIn_Dialog"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -47,42 +47,42 @@ template <> constexpr inline auto Dialog::qt_create_metaobjectdata<qt_meta_tag_Z
     };
     QtMocHelpers::UintData qt_enums {
     };
-    return QtMocHelpers::metaObjectData<Dialog, qt_meta_tag_ZN6DialogE_t>(QMC::MetaObjectFlag{}, qt_stringData,
+    return QtMocHelpers::metaObjectData<LogIn_Dialog, qt_meta_tag_ZN12LogIn_DialogE_t>(QMC::MetaObjectFlag{}, qt_stringData,
             qt_methods, qt_properties, qt_enums);
 }
-Q_CONSTINIT const QMetaObject Dialog::staticMetaObject = { {
+Q_CONSTINIT const QMetaObject LogIn_Dialog::staticMetaObject = { {
     QMetaObject::SuperData::link<QDialog::staticMetaObject>(),
-    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN6DialogE_t>.stringdata,
-    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN6DialogE_t>.data,
+    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12LogIn_DialogE_t>.stringdata,
+    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12LogIn_DialogE_t>.data,
     qt_static_metacall,
     nullptr,
-    qt_staticMetaObjectRelocatingContent<qt_meta_tag_ZN6DialogE_t>.metaTypes,
+    qt_staticMetaObjectRelocatingContent<qt_meta_tag_ZN12LogIn_DialogE_t>.metaTypes,
     nullptr
 } };
 
-void Dialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void LogIn_Dialog::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
-    auto *_t = static_cast<Dialog *>(_o);
+    auto *_t = static_cast<LogIn_Dialog *>(_o);
     (void)_t;
     (void)_c;
     (void)_id;
     (void)_a;
 }
 
-const QMetaObject *Dialog::metaObject() const
+const QMetaObject *LogIn_Dialog::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *Dialog::qt_metacast(const char *_clname)
+void *LogIn_Dialog::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
-    if (!strcmp(_clname, qt_staticMetaObjectStaticContent<qt_meta_tag_ZN6DialogE_t>.strings))
+    if (!strcmp(_clname, qt_staticMetaObjectStaticContent<qt_meta_tag_ZN12LogIn_DialogE_t>.strings))
         return static_cast<void*>(this);
     return QDialog::qt_metacast(_clname);
 }
 
-int Dialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int LogIn_Dialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QDialog::qt_metacall(_c, _id, _a);
     return _id;
