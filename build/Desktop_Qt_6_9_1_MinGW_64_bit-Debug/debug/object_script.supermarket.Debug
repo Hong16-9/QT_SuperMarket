@@ -1,0 +1,10 @@
+debug/LogIn_Dialog.o
+debug/dbmanager.o
+debug/Product.o
+debug/main.o
+debug/dbmanager.o
+debug/main.o
+debug/dialog.o
+debug/moc_LogIn_Dialog.o
+debug/moc_dbmanager.o
+debug/moc_Product.o

@@ -1,0 +1,10 @@
+release/LogIn_Dialog.o
+release/dbmanager.o
+release/Product.o
+release/main.o
+release/dbmanager.o
+release/main.o
+release/dialog.o
+release/moc_LogIn_Dialog.o
+release/moc_dbmanager.o
+release/moc_Product.o
