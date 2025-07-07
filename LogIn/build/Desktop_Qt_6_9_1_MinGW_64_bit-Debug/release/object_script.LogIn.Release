@@ -1,0 +1,13 @@
+release/dbmanager.o
+release/discountdao.o
+release/main.o
+release/dialog.o
+release/memberdao.o
+release/productdao.o
+release/saledao.o
+release/userdao.o
+release/moc_dialog.o
+release/moc_discountdao.o
+release/moc_memberdao.o
+release/moc_productdao.o
+release/moc_userdao.o
