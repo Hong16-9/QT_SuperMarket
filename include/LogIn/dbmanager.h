@@ -38,10 +38,6 @@ public:
     bool addMember(const QString& phone, const QString& name, double discount = 1.0);
     double getMemberDiscount(const QString& phone);
 
-    // 事务执行
-    bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());
-    QSqlQuery executeQuery(const QString& sql, const QVariantList& params = QVariantList());
-
     // 数据库状态
     bool isOpen() const;
     QString lastError() const;
@@ -50,6 +46,10 @@ public:
     static QString encryptPassword(const QString& password);
 
 private:
+    // 事务执行
+    bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());
+    QSqlQuery executeQuery(const QString& sql, const QVariantList& params = QVariantList());
+
     // 私有构造函数
     explicit DBManager(QObject *parent = nullptr);
     ~DBManager();
