@@ -28,7 +28,7 @@
                     
                        认证得到用户身份
                     
-                    数据可视化函数还在设计
+                    增加用户功能还在做
   
   3.商品管理
   
@@ -46,7 +46,15 @@
                     
                       更新商品增加delta个
                     
-                    数据可视化函数还在设计
+                    数据查询
+
+                    QList<QMap<QString, QVariant>> getAllProducts();
+                   
+                    QMap<QString, QVariant> getProductById(int productId);
+                    
+                    QList<QMap<QString, QVariant>> getProductsByName(const QString& name);
+                    
+                    QList<QMap<QString, QVariant>> getProductsByCategory(const QString& category);             
   
   4.会员管理
    
@@ -63,18 +71,38 @@
                      getMemberDiscount(const QString& phone)
        
                        对应折扣，默认折扣为1
+
+                     数据查询
+
+                     QList<QMap<QString, QVariant>> getAllMembers();
+                     
+                     QMap<QString, QVariant> getMemberByPhone(const QString& phone);
+                     
+                     QList<QMap<QString, QVariant>> getMembersByName(const QString& name);
  
   5.销售记录
   
     sales表内容：
              
                      id（主键）cashier_id（非空外键到用户id）total（非空>=0）payment（非空>=0）timestamp（销售时间）
+
+                     增加（同步到销售细明）
+
+                     bool addSale(int cashierId, double total, double payment, const QList<QVariantMap>& items, const QString& memberPhone = "");
+
+                     查询
+
+                     QList<QMap<QString, QVariant>> getSalesByDateRange(const QDateTime& start, const QDateTime& end);
  
   6.销售细明
     
      sale_items表内容：
                  
                      sale_id（非空外键到销售记录id）product_id（非空外键到商品id）quantity（非空>=0）price（非空>=0）
+
+                     查询
+
+                     QList<QMap<QString, QVariant>> getSaleItemsBySaleId(int saleId);
   
   7.其他
      
@@ -87,3 +115,5 @@
 **二、登陆界面**
   
   1.识别登陆账户的类型对应到相应界面，用密码验证
+
+  2.注册功能 还在做
