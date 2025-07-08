@@ -44,6 +44,21 @@ public:
 
     // 实用函数（密码加密）
     static QString encryptPassword(const QString& password);
+    // ====== 新增查询接口 ======
+    // 商品查询
+    QList<QMap<QString, QVariant>> getAllProducts();
+    QMap<QString, QVariant> getProductById(int productId);
+    QList<QMap<QString, QVariant>> getProductsByName(const QString& name);
+    QList<QMap<QString, QVariant>> getProductsByCategory(const QString& category);
+
+    // 会员查询
+    QList<QMap<QString, QVariant>> getAllMembers();
+    QMap<QString, QVariant> getMemberByPhone(const QString& phone);
+    QList<QMap<QString, QVariant>> getMembersByName(const QString& name);
+
+    // 销售记录查询
+    QList<QMap<QString, QVariant>> getSalesByDateRange(const QDateTime& start, const QDateTime& end);
+    QList<QMap<QString, QVariant>> getSaleItemsBySaleId(int saleId);
 
 private:
     // 事务执行
