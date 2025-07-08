@@ -46,12 +46,12 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action"/>
-   <addaction name="action_2"/>
-   <addaction name="action_3"/>
-   <addaction name="action_4"/>
+   <addaction name="Add_Product"/>
+   <addaction name="Delete_Product"/>
+   <addaction name="Put_Product"/>
+   <addaction name="Search_Product"/>
   </widget>
-  <action name="action">
+  <action name="Add_Product">
    <property name="text">
     <string>添加商品</string>
    </property>
@@ -59,7 +59,7 @@
     <enum>QAction::NoRole</enum>
    </property>
   </action>
-  <action name="action_2">
+  <action name="Delete_Product">
    <property name="text">
     <string>删除商品</string>
    </property>
@@ -67,7 +67,7 @@
     <enum>QAction::NoRole</enum>
    </property>
   </action>
-  <action name="action_3">
+  <action name="Put_Product">
    <property name="text">
     <string>商品入库</string>
    </property>
@@ -75,7 +75,7 @@
     <enum>QAction::NoRole</enum>
    </property>
   </action>
-  <action name="action_4">
+  <action name="Search_Product">
    <property name="text">
     <string>商品搜索</string>
    </property>

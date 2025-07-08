@@ -9,9 +9,11 @@
 #include <QString>
 #include <QDebug>
 #include <QCryptographicHash>
-#include<QSqlError>
-#include<QVariantMap>
-#include<QDateTime>
+#include <QSqlError>
+#include <QVariantMap>
+#include <QDateTime>
+#include <QList>
+#include <QMap>
 
 class DBManager : public QObject
 {
@@ -35,6 +37,8 @@ public:
     // 商品管理
     bool addProduct(const QString& name, const QString& barcode, double price, int stock, const QString& category = "");
     bool updateProductStock(int productId, int delta);
+    bool deleteProduct(int productId);  // 新增：删除商品
+    QList<QMap<QString, QVariant>> searchProducts(const QString& keyword);  // 新增：按关键词搜索
 
     // 会员管理
     bool addMember(const QString& phone, const QString& name, double discount = 1.0);
@@ -46,7 +50,8 @@ public:
 
     // 实用函数（密码加密）
     static QString encryptPassword(const QString& password);
-    // ====== 新增查询接口 ======
+
+    // ====== 查询接口 ======
     // 商品查询
     QList<QMap<QString, QVariant>> getAllProducts();
     QMap<QString, QVariant> getProductById(int productId);
@@ -72,8 +77,6 @@ public:
     // 新增管理员认证方法
     bool authenticateAdmin(const QString& adminUsername, const QString& adminPassword);
 
-    //新增商品删除
-    bool deleteProduct(int productId);
 private:
     // 事务执行
     bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());
@@ -89,7 +92,7 @@ private:
     // 初始化默认数据
     bool initDefaultData();
 
-    QSqlDatabase m_database;
+    QSqlDatabase m_database;  // 数据库连接对象
 };
 
 #endif // DBMANAGER_H

@@ -1,6 +1,7 @@
-#include "LogIn/LogIn_Dialog.h"
+#include "LogIn/LoginDialog.h"
 #include "LogIn/dbmanager.h"
 #include"LogIn/registerdialog.h"
+#include "Product/Product.h"
 
 #include <QApplication>
 
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
     LoginDialog loginDialog;
     RegisterDialog registerDialog;
 
+
     // 连接登录对话框的信号
     QObject::connect(&loginDialog, &LoginDialog::switch_to_register, [&]() {
         loginDialog.hide();
@@ -27,9 +29,10 @@ int main(int argc, char *argv[])
 
     QObject::connect(&loginDialog, &LoginDialog::switch_to_productManage, [&](QString username) {
         // 这里可以打开主管理界面
-        qDebug() << "管理员登录成功:" << username;
-        // MainWindow adminWindow(username);
-        // adminWindow.show();
+        Product *productWindow = new Product(username); // 使用指针，避免局部变量被销毁
+        productWindow->setAttribute(Qt::WA_DeleteOnClose); // 关闭时自动删除
+        loginDialog.hide();
+        productWindow->show();
     });
 
     QObject::connect(&loginDialog, &LoginDialog::switch_to_cashier, [&](QString username) {

@@ -1,5 +1,5 @@
-#include "LogIn/LogIn_Dialog.h"
-#include "ui_LogIn_Dialog.h"
+#include "LogIn/LoginDialog.h"
+#include "ui_LoginDialog.h"
 #include "LogIn/dbmanager.h"
 #include "LogIn/RegisterDialog.h"  // 新增注册对话框头文件
 

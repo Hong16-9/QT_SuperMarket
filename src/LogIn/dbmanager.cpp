@@ -1,6 +1,6 @@
-// database/dbmanager.cpp
 #include "LogIn/dbmanager.h"
 
+// 单例模式实现
 DBManager::DBManager(QObject *parent) : QObject(parent)
 {
     // 注册SQLite驱动
@@ -180,6 +180,29 @@ bool DBManager::updateProductStock(int productId, int delta)
         );
 }
 
+// 新增：按关键词搜索商品（名称或条码）
+QList<QMap<QString, QVariant>> DBManager::searchProducts(const QString& keyword)
+{
+    QSqlQuery query = executeQuery(
+        "SELECT id, name, barcode, price, stock, category FROM products "
+        "WHERE name LIKE ? OR barcode LIKE ?",
+        {"%" + keyword + "%", "%" + keyword + "%"}
+        );
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
+        record["name"] = query.value("name");
+        record["barcode"] = query.value("barcode");
+        record["price"] = query.value("price");
+        record["stock"] = query.value("stock");
+        record["category"] = query.value("category");
+        results.append(record);
+    }
+    return results;
+}
+
 bool DBManager::addMember(const QString& phone, const QString& name, double discount)
 {
     QVariantList params;
@@ -255,14 +278,13 @@ QString DBManager::encryptPassword(const QString& password)
 {
     return QCryptographicHash::hash(password.toUtf8(),
                                     QCryptographicHash::Sha256).toHex();
-    //SHA-256哈希存储对数据库中密码进行加密
 }
 
 // ================= 商品查询实现 =================
 QList<QMap<QString, QVariant>> DBManager::getAllProducts() {
     QSqlQuery query = executeQuery(
         "SELECT id, name, barcode, price, stock, category FROM products"
-    );
+        );
 
     QList<QMap<QString, QVariant>> results;
     while (query.next()) {
@@ -282,7 +304,7 @@ QMap<QString, QVariant> DBManager::getProductById(int productId) {
     QSqlQuery query = executeQuery(
         "SELECT id, name, barcode, price, stock, category FROM products WHERE id = ?",
         {productId}
-    );
+        );
 
     QMap<QString, QVariant> record;
     if (query.next()) {
@@ -301,7 +323,7 @@ QList<QMap<QString, QVariant>> DBManager::getProductsByName(const QString& name)
         "SELECT id, name, barcode, price, stock, category FROM products "
         "WHERE name LIKE ?",
         {"%" + name + "%"}
-    );
+        );
 
     QList<QMap<QString, QVariant>> results;
     while (query.next()) {
@@ -322,7 +344,7 @@ QList<QMap<QString, QVariant>> DBManager::getProductsByCategory(const QString& c
         "SELECT id, name, barcode, price, stock, category FROM products "
         "WHERE category = ?",
         {category}
-    );
+        );
 
     QList<QMap<QString, QVariant>> results;
     while (query.next()) {
@@ -342,7 +364,7 @@ QList<QMap<QString, QVariant>> DBManager::getProductsByCategory(const QString& c
 QList<QMap<QString, QVariant>> DBManager::getAllMembers() {
     QSqlQuery query = executeQuery(
         "SELECT id, phone, name, discount FROM members"
-    );
+        );
 
     QList<QMap<QString, QVariant>> results;
     while (query.next()) {
@@ -360,7 +382,7 @@ QMap<QString, QVariant> DBManager::getMemberByPhone(const QString& phone) {
     QSqlQuery query = executeQuery(
         "SELECT id, phone, name, discount FROM members WHERE phone = ?",
         {phone}
-    );
+        );
 
     QMap<QString, QVariant> record;
     if (query.next()) {
@@ -377,143 +399,9 @@ QList<QMap<QString, QVariant>> DBManager::getMembersByName(const QString& name) 
         "SELECT id, phone, name, discount FROM members "
         "WHERE name LIKE ?",
         {"%" + name + "%"}
-    );
-
-    QList<QMap<QString, QVariant>> results;
-    while (query.next()) {
-        QMap<QString, QVariant> record;
-        record["id"] = query.value("id");
-        record["phone"] = query.value("phone");
-        record["name"] = query.value("name");
-        record["discount"] = query.value("discount");
-        results.append(record);
-    }
-    return results;
-}
-
-// ================= 销售记录查询实现 =================
-QList<QMap<QString, QVariant>> DBManager::getSalesByDateRange(const QDateTime& start, const QDateTime& end) {
-    QSqlQuery query = executeQuery(
-        "SELECT id, cashier_id, total, payment, timestamp FROM sales "
-        "WHERE timestamp BETWEEN ? AND ?",
-        {start.toString(Qt::ISODate), end.toString(Qt::ISODate)}
-    );
-
-    QList<QMap<QString, QVariant>> results;
-    while (query.next()) {
-        QMap<QString, QVariant> record;
-        record["id"] = query.value("id");
-        record["cashier_id"] = query.value("cashier_id");
-        record["total"] = query.value("total");
-        record["payment"] = query.value("payment");
-        record["timestamp"] = query.value("timestamp");
-        results.append(record);
-    }
-    return results;
-}
-
-QList<QMap<QString, QVariant>> DBManager::getSaleItemsBySaleId(int saleId) {
-    QSqlQuery query = executeQuery(
-        "SELECT si.product_id, p.name, si.quantity, si.price "
-        "FROM sale_items si "
-        "JOIN products p ON si.product_id = p.id "
-        "WHERE si.sale_id = ?",
-        {saleId}
-    );
-
-    QList<QMap<QString, QVariant>> results;
-    while (query.next()) {
-        QMap<QString, QVariant> record;
-        record["product_id"] = query.value("product_id");
-        record["name"] = query.value("name");
-        record["quantity"] = query.value("quantity");
-        record["price"] = query.value("price");
-        results.append(record);
-    }
-    return results;
-}
-
-bool DBManager::addSale(int cashierId, double total, double payment,
-                        const QList<QVariantMap>& items,
-                        const QString& memberPhone)
-{
-    // 开始事务
-    if (!m_database.transaction()) {
-        qCritical() << "无法开始事务:" << m_database.lastError().text();
-        return false;
-    }
-
-    // 应用会员折扣
-    double discount = 1.0;
-    if (!memberPhone.isEmpty()) {
-        discount = getMemberDiscount(memberPhone);
-        total *= discount;
-    }
-
-    // 插入销售记录
-    QSqlQuery saleQuery;
-    saleQuery.prepare(
-        "INSERT INTO sales (cashier_id, total, payment, timestamp) "
-        "VALUES (?, ?, ?, datetime('now'))"
-    );
-    saleQuery.addBindValue(cashierId);
-    saleQuery.addBindValue(total);
-    saleQuery.addBindValue(payment);
-
-    if (!saleQuery.exec()) {
-        qCritical() << "添加销售记录失败:" << saleQuery.lastError().text();
-        m_database.rollback();
-        return false;
-    }
-
-    // 获取最后插入的销售ID
-    int saleId = saleQuery.lastInsertId().toInt();
-    if (saleId <= 0) {
-        qCritical() << "获取销售ID失败";
-        m_database.rollback();
-        return false;
-    }
-
-    // 插入销售明细并更新库存
-    foreach (const QVariantMap& item, items) {
-        int productId = item["product_id"].toInt();
-        int quantity = item["quantity"].toInt();
-        double price = item["price"].toDouble();
-
-        // 插入销售明细
-        QSqlQuery itemQuery;
-        itemQuery.prepare(
-            "INSERT INTO sale_items (sale_id, product_id, quantity, price) "
-            "VALUES (?, ?, ?, ?)"
         );
-        itemQuery.addBindValue(saleId);
-        itemQuery.addBindValue(productId);
-        itemQuery.addBindValue(quantity);
-        itemQuery.addBindValue(price);
 
-        if (!itemQuery.exec()) {
-            qCritical() << "添加销售明细失败:" << itemQuery.lastError().text();
-            m_database.rollback();
-            return false;
-        }
-
-        // 更新库存（减少库存）
-        if (!updateProductStock(productId, -quantity)) {
-            qCritical() << "更新库存失败: 商品ID=" << productId;
-            m_database.rollback();
-            return false;
-        }
-    }
-
-    // 提交事务
-    if (!m_database.commit()) {
-        qCritical() << "提交事务失败:" << m_database.lastError().text();
-        m_database.rollback();
-        return false;
-    }
-
-    qInfo() << "添加销售记录成功: ID=" << saleId;
-    return true;
+    QList<QMap<QString, QVariant>> results;
 }
 
 bool DBManager::authenticateAdmin(const QString& adminUsername, const QString& adminPassword)
