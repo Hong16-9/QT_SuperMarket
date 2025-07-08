@@ -12,9 +12,10 @@
 #include <QWidget>
 #include <QMap>
 #include <QPair>
+#include <QSet>
 
-// 引入小组成员的数据库接口（确保路径正确）
-#include "LogIn/dbmanager.h"  // 假设该头文件中定义了DBManager类
+// 引入小组成员的数据库接口
+#include "LogIn/dbmanager.h"
 
 class Product : public QMainWindow
 {
@@ -33,7 +34,7 @@ private slots:
     void onExportDataClicked();
 
 private:
-    // 界面组件（声明）
+    // 界面组件
     QTableView *productTableView;
     QStandardItemModel *productModel;
     QLineEdit *searchLineEdit;
@@ -45,14 +46,15 @@ private:
     QPushButton *importButton;
     QPushButton *exportButton;
 
-    // 数据库管理器（修正类名为DBManager，与组员保持一致）
-    DBManager *dbManager;  // 关键：类名改为DBManager（大写DB）
+    // 数据库管理器（使用单例）
+    DBManager *dbManager;
 
-    // 声明所有成员函数（之前缺失，导致"未声明"错误）
-    void setupUI();                  // 初始化UI
-    void setupTableView();           // 设置表格视图
-    void loadProducts();             // 加载商品数据
-    void updateCategoryComboBox();   // 更新分类下拉框
+    // 辅助函数
+    void setupUI();
+    void setupTableView();
+    void loadProducts();
+    void updateCategoryComboBox();
+    void searchProducts(const QString &keyword, const QString &category);
 };
 
 #endif // PRODUCT_H

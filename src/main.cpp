@@ -1,4 +1,4 @@
-#include "LogIn/LogIn_Dialog.h"
+#include "LogIn/LoginDialog.h"
 #include "LogIn/dbmanager.h"
 #include "Product/Product.h"
 
@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     Product c;
     c.show();
-    LogIn_Dialog w;
+    LoginDialog w;
     w.show();
     return a.exec();
 }
