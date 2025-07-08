@@ -1,5 +1,6 @@
 #include "LogIn/LogIn_Dialog.h"
 #include "LogIn/dbmanager.h"
+#include "Product/Product.h"
 
 #include <QApplication>
 
@@ -14,6 +15,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    Product c;
+    c.show();
     LogIn_Dialog w;
     w.show();
     return a.exec();
