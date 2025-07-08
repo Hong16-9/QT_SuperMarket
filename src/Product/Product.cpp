@@ -12,7 +12,8 @@
 #include <QTextStream>
 #include <QDebug>
 
-Product::Product(QWidget *parent) : QMainWindow(parent)
+Product::Product(QString name,QWidget *parent) : QMainWindow(parent)
+                                                ,name(name)
 {
     setWindowTitle("商品管理");
     setMinimumSize(1024, 600);

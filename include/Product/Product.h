@@ -22,7 +22,7 @@ class Product : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit Product(QWidget *parent = nullptr);
+    explicit Product(QString name,QWidget *parent = nullptr);
     ~Product() override;
 
 private slots:
@@ -34,6 +34,9 @@ private slots:
     void onExportDataClicked();
 
 private:
+    //管理员姓名
+    QString name;
+
     // 界面组件
     QTableView *productTableView;
     QStandardItemModel *productModel;
@@ -55,6 +58,7 @@ private:
     void loadProducts();
     void updateCategoryComboBox();
     void searchProducts(const QString &keyword, const QString &category);
+
 };
 
 #endif // PRODUCT_H

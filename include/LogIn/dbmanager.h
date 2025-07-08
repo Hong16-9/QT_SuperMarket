@@ -71,6 +71,11 @@ public:
     bool addSale(int cashierId, double total, double payment,
                  const QList<QVariantMap>& items,
                  const QString& memberPhone = "");
+    // 用户管理 - 新增注册功能
+    bool registerUser(const QString& username, const QString& password, const QString& role = "cashier");
+
+    // 新增管理员认证方法
+    bool authenticateAdmin(const QString& adminUsername, const QString& adminPassword);
 
 private:
     // 事务执行
