@@ -1,14 +1,14 @@
 #include "Product/Product.h"
 #include "ui_Product.h"
 
-MainWindow::MainWindow(QWidget *parent)
+Product::Product(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    , ui(new Ui::Product)
 {
     ui->setupUi(this);
 }
 
-MainWindow::~MainWindow()
+Product::~Product()
 {
     delete ui;
 }

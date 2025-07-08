@@ -515,3 +515,41 @@ bool DBManager::addSale(int cashierId, double total, double payment,
     qInfo() << "添加销售记录成功: ID=" << saleId;
     return true;
 }
+
+bool DBManager::authenticateAdmin(const QString& adminUsername, const QString& adminPassword)
+{
+    QSqlQuery query = executeQuery(
+        "SELECT password, role FROM users WHERE username = ?",
+        {adminUsername}
+    );
+
+    if (query.next()) {
+        QString storedHash = query.value(0).toString();
+        QString inputHash = encryptPassword(adminPassword);
+        QString role = query.value(1).toString();
+
+        // 验证密码和角色
+        if (storedHash == inputHash && role == "admin") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool DBManager::registerUser(const QString& username, const QString& password, const QString& role)
+{
+    // 检查用户名是否已存在
+    QSqlQuery checkQuery = executeQuery(
+        "SELECT COUNT(*) FROM users WHERE username = ?",
+        {username}
+    );
+
+    if (checkQuery.next() && checkQuery.value(0).toInt() > 0) {
+        qWarning() << "用户名已存在:" << username;
+        return false;
+    }
+
+    // 创建新用户
+    return createUser(username, password, role);
+}

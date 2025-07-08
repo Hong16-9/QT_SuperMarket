@@ -5,19 +5,19 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-class MainWindow;
+class Product;
 }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
+class Product : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    Product(QWidget *parent = nullptr);
+    ~Product();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::Product *ui;
 };
 #endif // PRODUCT_H

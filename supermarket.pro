@@ -17,17 +17,20 @@ SOURCES += \
     src/LogIn/LogIn_Dialog.cpp \
     src/LogIn/dbmanager.cpp \
     src/Product/Product.cpp \
+    src/LogIn/registerdialog.cpp
 
 HEADERS += \
     include/Check/Check_Mainwindow.h \
     include/LogIn/LogIn_Dialog.h \
     include/LogIn/dbmanager.h \
     include/Product/Product.h \
+    include/LogIn/registerdialog.h
 
 FORMS += \
     src/Check/Check_Mainwindow.ui \
     src/LogIn/LogIn_Dialog.ui \
-    src/Product/Product.ui
+    src/Product/Product.ui \
+    src/LogIn/registerdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

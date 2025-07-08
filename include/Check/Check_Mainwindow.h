@@ -39,7 +39,7 @@ public:
 
 
 private slots:
-    void on_chooselistWidget_itemDoubleClicked(QListWidgetItem *item);
+//    void on_chooselistWidget_itemDoubleClicked(QListWidgetItem *item);
 
 private:
     Ui::MainWindow *ui;

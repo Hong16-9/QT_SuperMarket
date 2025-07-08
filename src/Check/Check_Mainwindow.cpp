@@ -25,12 +25,12 @@ void MainWindow::updateProduct(const QString* category){
 void MainWindow::categoryProduct(){
     QPushButton* senderButton=qobject_cast<QPushButton*>(sender());
     if(!senderButton) return;
-    updateProduct(senderButton->text());
+    //updateProduct(senderButton->text());
 }
 
-void MainWindow::on_chooselistWidget_itemDoubleClicked(QListWidgetItem *item)
-{
-    if(!item) return;
+//void MainWindow::on_chooselistWidget_itemDoubleClicked(QListWidgetItem *item)
+//{
+//    if(!item) return;
 
-}
+//}
 
