@@ -9,7 +9,11 @@
 #include <QString>
 #include <QDebug>
 #include <QCryptographicHash>
-#include<QSqlError>
+#include <QSqlError>
+#include <QVariantMap>
+#include <QDateTime>
+#include <QList>
+#include <QMap>
 
 class DBManager : public QObject
 {
@@ -33,14 +37,12 @@ public:
     // 商品管理
     bool addProduct(const QString& name, const QString& barcode, double price, int stock, const QString& category = "");
     bool updateProductStock(int productId, int delta);
+    bool deleteProduct(int productId);  // 新增：删除商品
+    QList<QMap<QString, QVariant>> searchProducts(const QString& keyword);  // 新增：按关键词搜索
 
     // 会员管理
     bool addMember(const QString& phone, const QString& name, double discount = 1.0);
     double getMemberDiscount(const QString& phone);
-
-    // 事务执行
-    bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());
-    QSqlQuery executeQuery(const QString& sql, const QVariantList& params = QVariantList());
 
     // 数据库状态
     bool isOpen() const;
@@ -49,7 +51,32 @@ public:
     // 实用函数（密码加密）
     static QString encryptPassword(const QString& password);
 
+    // ====== 查询接口 ======
+    // 商品查询
+    QList<QMap<QString, QVariant>> getAllProducts();
+    QMap<QString, QVariant> getProductById(int productId);
+    QList<QMap<QString, QVariant>> getProductsByName(const QString& name);
+    QList<QMap<QString, QVariant>> getProductsByCategory(const QString& category);
+
+    // 会员查询
+    QList<QMap<QString, QVariant>> getAllMembers();
+    QMap<QString, QVariant> getMemberByPhone(const QString& phone);
+    QList<QMap<QString, QVariant>> getMembersByName(const QString& name);
+
+    // 销售记录查询
+    QList<QMap<QString, QVariant>> getSalesByDateRange(const QDateTime& start, const QDateTime& end);
+    QList<QMap<QString, QVariant>> getSaleItemsBySaleId(int saleId);
+
+    // 添加销售记录和销售明细
+    bool addSale(int cashierId, double total, double payment,
+                 const QList<QVariantMap>& items,
+                 const QString& memberPhone = "");
+
 private:
+    // 事务执行
+    bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());
+    QSqlQuery executeQuery(const QString& sql, const QVariantList& params = QVariantList());
+
     // 私有构造函数
     explicit DBManager(QObject *parent = nullptr);
     ~DBManager();
@@ -60,7 +87,7 @@ private:
     // 初始化默认数据
     bool initDefaultData();
 
-    QSqlDatabase m_database;
+    QSqlDatabase m_database;  // 数据库连接对象
 };
 
 #endif // DBMANAGER_H

@@ -1,6 +1,6 @@
-// database/dbmanager.cpp
 #include "LogIn/dbmanager.h"
 
+// 单例模式实现
 DBManager::DBManager(QObject *parent) : QObject(parent)
 {
     // 注册SQLite驱动
@@ -180,6 +180,38 @@ bool DBManager::updateProductStock(int productId, int delta)
         );
 }
 
+// 新增：删除商品
+bool DBManager::deleteProduct(int productId)
+{
+    return executeTransaction(
+        "DELETE FROM products WHERE id = ?",
+        {productId}
+        );
+}
+
+// 新增：按关键词搜索商品（名称或条码）
+QList<QMap<QString, QVariant>> DBManager::searchProducts(const QString& keyword)
+{
+    QSqlQuery query = executeQuery(
+        "SELECT id, name, barcode, price, stock, category FROM products "
+        "WHERE name LIKE ? OR barcode LIKE ?",
+        {"%" + keyword + "%", "%" + keyword + "%"}
+        );
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
+        record["name"] = query.value("name");
+        record["barcode"] = query.value("barcode");
+        record["price"] = query.value("price");
+        record["stock"] = query.value("stock");
+        record["category"] = query.value("category");
+        results.append(record);
+    }
+    return results;
+}
+
 bool DBManager::addMember(const QString& phone, const QString& name, double discount)
 {
     QVariantList params;
@@ -255,5 +287,128 @@ QString DBManager::encryptPassword(const QString& password)
 {
     return QCryptographicHash::hash(password.toUtf8(),
                                     QCryptographicHash::Sha256).toHex();
-    //SHA-256哈希存储对数据库中密码进行加密
+}
+
+// ================= 商品查询实现 =================
+QList<QMap<QString, QVariant>> DBManager::getAllProducts() {
+    QSqlQuery query = executeQuery(
+        "SELECT id, name, barcode, price, stock, category FROM products"
+        );
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
+        record["name"] = query.value("name");
+        record["barcode"] = query.value("barcode");
+        record["price"] = query.value("price");
+        record["stock"] = query.value("stock");
+        record["category"] = query.value("category");
+        results.append(record);
+    }
+    return results;
+}
+
+QMap<QString, QVariant> DBManager::getProductById(int productId) {
+    QSqlQuery query = executeQuery(
+        "SELECT id, name, barcode, price, stock, category FROM products WHERE id = ?",
+        {productId}
+        );
+
+    QMap<QString, QVariant> record;
+    if (query.next()) {
+        record["id"] = query.value("id");
+        record["name"] = query.value("name");
+        record["barcode"] = query.value("barcode");
+        record["price"] = query.value("price");
+        record["stock"] = query.value("stock");
+        record["category"] = query.value("category");
+    }
+    return record;
+}
+
+QList<QMap<QString, QVariant>> DBManager::getProductsByName(const QString& name) {
+    QSqlQuery query = executeQuery(
+        "SELECT id, name, barcode, price, stock, category FROM products "
+        "WHERE name LIKE ?",
+        {"%" + name + "%"}
+        );
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
+        record["name"] = query.value("name");
+        record["barcode"] = query.value("barcode");
+        record["price"] = query.value("price");
+        record["stock"] = query.value("stock");
+        record["category"] = query.value("category");
+        results.append(record);
+    }
+    return results;
+}
+
+QList<QMap<QString, QVariant>> DBManager::getProductsByCategory(const QString& category) {
+    QSqlQuery query = executeQuery(
+        "SELECT id, name, barcode, price, stock, category FROM products "
+        "WHERE category = ?",
+        {category}
+        );
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
+        record["name"] = query.value("name");
+        record["barcode"] = query.value("barcode");
+        record["price"] = query.value("price");
+        record["stock"] = query.value("stock");
+        record["category"] = query.value("category");
+        results.append(record);
+    }
+    return results;
+}
+
+// ================= 会员查询实现 =================
+QList<QMap<QString, QVariant>> DBManager::getAllMembers() {
+    QSqlQuery query = executeQuery(
+        "SELECT id, phone, name, discount FROM members"
+        );
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
+        record["phone"] = query.value("phone");
+        record["name"] = query.value("name");
+        record["discount"] = query.value("discount");
+        results.append(record);
+    }
+    return results;
+}
+
+QMap<QString, QVariant> DBManager::getMemberByPhone(const QString& phone) {
+    QSqlQuery query = executeQuery(
+        "SELECT id, phone, name, discount FROM members WHERE phone = ?",
+        {phone}
+        );
+
+    QMap<QString, QVariant> record;
+    if (query.next()) {
+        record["id"] = query.value("id");
+        record["phone"] = query.value("phone");
+        record["name"] = query.value("name");
+        record["discount"] = query.value("discount");
+    }
+    return record;
+}
+
+QList<QMap<QString, QVariant>> DBManager::getMembersByName(const QString& name) {
+    QSqlQuery query = executeQuery(
+        "SELECT id, phone, name, discount FROM members "
+        "WHERE name LIKE ?",
+        {"%" + name + "%"}
+        );
+
+    QList<QMap<QString, QVariant>> results;
 }

@@ -1,5 +1,5 @@
-#include "LogIn/LogIn_Dialog.h"
-#include "ui_LogIn_Dialog.h"
+#include "LogIn/LoginDialog.h"
+#include "ui_LoginDialog.h"
 #include "LogIn/dbmanager.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
