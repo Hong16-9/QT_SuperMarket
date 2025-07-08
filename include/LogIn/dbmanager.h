@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QCryptographicHash>
 #include<QSqlError>
+#include<QVariantMap>
 
 class DBManager : public QObject
 {
@@ -60,6 +61,10 @@ public:
     QList<QMap<QString, QVariant>> getSalesByDateRange(const QDateTime& start, const QDateTime& end);
     QList<QMap<QString, QVariant>> getSaleItemsBySaleId(int saleId);
 
+    // 添加销售记录和销售明细
+    bool addSale(int cashierId, double total, double payment,
+                 const QList<QVariantMap>& items,
+                 const QString& memberPhone = "");
 private:
     // 事务执行
     bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());

@@ -432,3 +432,86 @@ QList<QMap<QString, QVariant>> DBManager::getSaleItemsBySaleId(int saleId) {
     }
     return results;
 }
+
+bool DBManager::addSale(int cashierId, double total, double payment,
+                        const QList<QVariantMap>& items,
+                        const QString& memberPhone)
+{
+    // 开始事务
+    if (!m_database.transaction()) {
+        qCritical() << "无法开始事务:" << m_database.lastError().text();
+        return false;
+    }
+
+    // 应用会员折扣
+    double discount = 1.0;
+    if (!memberPhone.isEmpty()) {
+        discount = getMemberDiscount(memberPhone);
+        total *= discount;
+    }
+
+    // 插入销售记录
+    QSqlQuery saleQuery;
+    saleQuery.prepare(
+        "INSERT INTO sales (cashier_id, total, payment, timestamp) "
+        "VALUES (?, ?, ?, datetime('now'))"
+    );
+    saleQuery.addBindValue(cashierId);
+    saleQuery.addBindValue(total);
+    saleQuery.addBindValue(payment);
+
+    if (!saleQuery.exec()) {
+        qCritical() << "添加销售记录失败:" << saleQuery.lastError().text();
+        m_database.rollback();
+        return false;
+    }
+
+    // 获取最后插入的销售ID
+    int saleId = saleQuery.lastInsertId().toInt();
+    if (saleId <= 0) {
+        qCritical() << "获取销售ID失败";
+        m_database.rollback();
+        return false;
+    }
+
+    // 插入销售明细并更新库存
+    foreach (const QVariantMap& item, items) {
+        int productId = item["product_id"].toInt();
+        int quantity = item["quantity"].toInt();
+        double price = item["price"].toDouble();
+
+        // 插入销售明细
+        QSqlQuery itemQuery;
+        itemQuery.prepare(
+            "INSERT INTO sale_items (sale_id, product_id, quantity, price) "
+            "VALUES (?, ?, ?, ?)"
+        );
+        itemQuery.addBindValue(saleId);
+        itemQuery.addBindValue(productId);
+        itemQuery.addBindValue(quantity);
+        itemQuery.addBindValue(price);
+
+        if (!itemQuery.exec()) {
+            qCritical() << "添加销售明细失败:" << itemQuery.lastError().text();
+            m_database.rollback();
+            return false;
+        }
+
+        // 更新库存（减少库存）
+        if (!updateProductStock(productId, -quantity)) {
+            qCritical() << "更新库存失败: 商品ID=" << productId;
+            m_database.rollback();
+            return false;
+        }
+    }
+
+    // 提交事务
+    if (!m_database.commit()) {
+        qCritical() << "提交事务失败:" << m_database.lastError().text();
+        m_database.rollback();
+        return false;
+    }
+
+    qInfo() << "添加销售记录成功: ID=" << saleId;
+    return true;
+}
