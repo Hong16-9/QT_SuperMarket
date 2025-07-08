@@ -24,6 +24,10 @@ private slots:
     void on_Login_clicked();
     void on_Register_clicked();  // 新增注册按钮槽函数
 
+    void on_codeshow_pressed();
+
+    void on_codeshow_released();
+
 private:
     void Into(QString UserName,QString Role); //登陆成功后跳转的函数
 

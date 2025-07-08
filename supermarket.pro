@@ -41,3 +41,6 @@ DISTFILES += \
     src/LogIn/LogIn.pro.user \
     src/Product/Product.pro.user \
     supermarket.pro.user
+
+RESOURCES += \
+    icon.qrc

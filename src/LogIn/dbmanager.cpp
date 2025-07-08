@@ -553,3 +553,22 @@ bool DBManager::registerUser(const QString& username, const QString& password, c
     // 创建新用户
     return createUser(username, password, role);
 }
+
+bool DBManager::deleteProduct(int productId)
+{
+    // 先检查该商品是否有销售记录
+    QSqlQuery checkQuery = executeQuery(
+        "SELECT COUNT(*) FROM sale_items WHERE product_id = ?",
+        {productId}
+    );
+
+    if (checkQuery.next() && checkQuery.value(0).toInt() > 0) {
+        qWarning() << "无法删除商品: 该商品已有销售记录";
+        return false;
+    }
+
+    return executeTransaction(
+        "DELETE FROM products WHERE id = ?",
+        {productId}
+    );
+}

@@ -24,6 +24,18 @@ private slots:
     void on_registerButton_clicked();
     void on_backButton_clicked();
 
+    void on_codeshow_pressed();
+
+    void on_codeshow_released();
+
+    void on_codeshow_2_pressed();
+
+    void on_codeshow_2_released();
+
+    void on_codeshow_3_pressed();
+
+    void on_codeshow_3_released();
+
 private:
     Ui::RegisterDialog *ui;
 };

@@ -1,5 +1,5 @@
-#include "LogIn/RegisterDialog.h"
-#include "ui_RegisterDialog.h"
+#include "LogIn/registerdialog.h"
+#include "ui_registerdialog.h"
 #include <QMessageBox>
 
 RegisterDialog::RegisterDialog(QWidget *parent) :
@@ -7,6 +7,8 @@ RegisterDialog::RegisterDialog(QWidget *parent) :
     ui(new Ui::RegisterDialog)
 {
     ui->setupUi(this);
+
+    setWindowTitle("注册");
 
     // 设置密码输入框为密码模式
     ui->passwordEdit->setEchoMode(QLineEdit::Password);
@@ -71,4 +73,34 @@ void RegisterDialog::on_registerButton_clicked()
 void RegisterDialog::on_backButton_clicked()
 {
     emit switch_back();
+}
+
+void RegisterDialog::on_codeshow_pressed()
+{
+    ui->adminPasswordEdit->setEchoMode(QLineEdit::Normal);
+}
+
+void RegisterDialog::on_codeshow_released()
+{
+    ui->adminPasswordEdit->setEchoMode(QLineEdit::Password);
+}
+
+void RegisterDialog::on_codeshow_2_pressed()
+{
+    ui->passwordEdit->setEchoMode(QLineEdit::Normal);
+}
+
+void RegisterDialog::on_codeshow_2_released()
+{
+    ui->passwordEdit->setEchoMode(QLineEdit::Password);
+}
+
+void RegisterDialog::on_codeshow_3_pressed()
+{
+    ui->confirmPasswordEdit->setEchoMode(QLineEdit::Normal);
+}
+
+void RegisterDialog::on_codeshow_3_released()
+{
+    ui->confirmPasswordEdit->setEchoMode(QLineEdit::Password);
 }

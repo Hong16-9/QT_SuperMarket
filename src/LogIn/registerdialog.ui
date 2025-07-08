@@ -49,6 +49,20 @@
       <item>
        <widget class="QLineEdit" name="adminPasswordEdit"/>
       </item>
+      <item>
+       <widget class="QPushButton" name="codeshow">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../icon.qrc">
+          <normaloff>:/LogIn/icon/codeshow.jpg</normaloff>:/LogIn/icon/codeshow.jpg</iconset>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -102,6 +116,20 @@
       <item>
        <widget class="QLineEdit" name="passwordEdit"/>
       </item>
+      <item>
+       <widget class="QPushButton" name="codeshow_2">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../icon.qrc">
+          <normaloff>:/LogIn/icon/codeshow.jpg</normaloff>:/LogIn/icon/codeshow.jpg</iconset>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -115,6 +143,20 @@
       </item>
       <item>
        <widget class="QLineEdit" name="confirmPasswordEdit"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="codeshow_3">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../icon.qrc">
+          <normaloff>:/LogIn/icon/codeshow.jpg</normaloff>:/LogIn/icon/codeshow.jpg</iconset>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -160,6 +202,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../icon.qrc"/>
+ </resources>
  <connections/>
 </ui>

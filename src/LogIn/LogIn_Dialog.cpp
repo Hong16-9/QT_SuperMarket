@@ -9,6 +9,8 @@ LoginDialog::LoginDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
+    setWindowTitle("请登录");
+
     // 隐藏错误标签直到需要显示
     ui->errorLabel->hide();
 
@@ -58,6 +60,15 @@ void LoginDialog::Into(QString UserName, QString Role){
 void LoginDialog::setUsername(const QString &username)
 {
     ui->usernameEdit->setText(username);
-    // 可选：将焦点设置到密码输入框
     ui->passwordEdit->setFocus();
+}
+
+void LoginDialog::on_codeshow_pressed()
+{
+    ui->passwordEdit->setEchoMode(QLineEdit::Normal);
+}
+
+void LoginDialog::on_codeshow_released()
+{
+    ui->passwordEdit->setEchoMode(QLineEdit::Password);
 }
