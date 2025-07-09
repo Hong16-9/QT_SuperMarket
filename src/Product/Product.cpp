@@ -10,7 +10,8 @@
 #include <QTextStream>
 #include <QDebug>
 
-Product::Product(QWidget *parent) :
+Product::Product(QString name,QWidget *parent) :
+    name(name),
     QMainWindow(parent),
     ui(new Ui::Product),
     dbManager(&DBManager::instance())
@@ -20,6 +21,7 @@ Product::Product(QWidget *parent) :
     initUI();           // 关联UI控件
     setupConnections(); // 连接信号与槽
     loadProducts();     // 初始加载商品数据
+    setWindowTitle(QString("商品管理 - 当前用户: %1").arg(name));
 }
 
 Product::~Product()
