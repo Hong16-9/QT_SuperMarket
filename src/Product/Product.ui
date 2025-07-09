@@ -14,14 +14,47 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTableView" name="tableView">
+   <widget class="QTableView" name="productTableView">
     <property name="geometry">
      <rect>
-      <x>-5</x>
-      <y>21</y>
-      <width>461</width>
-      <height>251</height>
+      <x>0</x>
+      <y>20</y>
+      <width>661</width>
+      <height>391</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="categoryComboBox">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="searchLineEdit">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>0</y>
+      <width>471</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Search_Product">
+    <property name="geometry">
+     <rect>
+      <x>590</x>
+      <y>0</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>商品搜索</string>
     </property>
    </widget>
   </widget>
@@ -49,7 +82,10 @@
    <addaction name="Add_Product"/>
    <addaction name="Delete_Product"/>
    <addaction name="Put_Product"/>
-   <addaction name="Search_Product"/>
+   <addaction name="Out_Product"/>
+   <addaction name="importAction"/>
+   <addaction name="exportAction"/>
+   <addaction name="backToLogin"/>
   </widget>
   <action name="Add_Product">
    <property name="text">
@@ -75,9 +111,33 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="Search_Product">
+  <action name="importAction">
    <property name="text">
-    <string>商品搜索</string>
+    <string>导入数据</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="exportAction">
+   <property name="text">
+    <string>导出数据</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="Out_Product">
+   <property name="text">
+    <string>商品出库</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="backToLogin">
+   <property name="text">
+    <string>返回</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
