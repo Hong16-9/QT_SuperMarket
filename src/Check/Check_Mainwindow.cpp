@@ -26,6 +26,84 @@ void Check_Mainwindow::setupUI(){
     m_cartModel->setHorizontalHeaderLabels({"商品", "单价", "数量", "小计"});     //设置购物车条目的标题
 
     ui->cartlistView->setModel(m_cartModel);                                   //关联模型和视图
+
+
+
+    // 查找 productgroupBox 并检查有效性
+    QGroupBox* productGroupBox = findChild<QGroupBox*>("productgroupBox");
+    if (!productGroupBox) {
+        qCritical() << "无法找到 productgroupBox!";
+        return;
+    }
+
+    // 检查布局是否存在且有效
+    QLayout* groupLayout = productGroupBox->layout();
+    if (!groupLayout || groupLayout->count() == 0) {
+        qCritical() << "productgroupBox 布局为空或无效!";
+        return;
+    }
+
+
+    QWidget* leftWidget = findChild<QWidget*>("leftWidget");       // 左侧按钮区
+    QWidget* cartWidget = findChild<QWidget*>("cartWidget");       // 中间购物车区
+    categoryWidget = findChild<QWidget*>("categoryWidget");        //分类按钮
+
+
+    //设置按钮区
+    QVBoxLayout* leftLayout = qobject_cast<QVBoxLayout*>(leftWidget->layout());
+    if (leftLayout) {
+        leftLayout->addStretch(); // 按钮居上，下方留白
+    }
+
+
+    //设置购物车区
+    QVBoxLayout* cartLayout = qobject_cast<QVBoxLayout*>(cartWidget->layout());
+    if (cartLayout) {
+        // 若总价区域已在 .ui 设好水平布局，无需重复创建
+        // 如需微调，可在这里 addWidget 或调整 stretch
+    }
+
+
+    //设置商品区分类按钮+列表
+    QWidget* categoryWidget = findChild<QWidget*>("categoryWidget");
+    QHBoxLayout* categoryLayout = qobject_cast<QHBoxLayout*>(categoryWidget->layout());
+    if (categoryLayout) {
+        for (QPushButton* btn : m_categoryButtons) {
+            categoryLayout->addWidget(btn);
+        }
+    }
+    ui->productlistWidget->setDragDropMode(QAbstractItemView::NoDragDrop); //           禁用商品区拖放
+    ui->productlistWidget->setSelectionMode(QAbstractItemView::SingleSelection); //     限制商品区单选
+
+
+
+
+
+
+    //连接信号与槽
+    connect(ui->productlistWidget, &QListWidget::itemDoubleClicked,
+            this, &Check_Mainwindow::chooselistWidgetitemDoubleClicked);
+
+    connect(ui->changebtn, &QPushButton::clicked,
+            this, &Check_Mainwindow::changebtnclicked);
+
+    connect(ui->deletebtn, &QPushButton::clicked,
+            this, &Check_Mainwindow::deletebtnclicked);
+
+    connect(ui->clearbtn, &QPushButton::clicked,
+            this, &Check_Mainwindow::clearbtnclicked);
+    connect(ui->paybtn, &QPushButton::clicked,
+            this, &Check_Mainwindow::paybtnclicked);
+
+    if (!ui) {
+        qCritical() << "ui 未初始化!";
+        return;
+    }
+    if (!ui->cartlistView || !ui->changebtn || !ui->deletebtn) {
+        qCritical() << "UI 控件缺失，请检查 .ui 文件!";
+        return;
+    }
+
 }
 
 
@@ -34,13 +112,18 @@ QStringList Check_Mainwindow::getcategory() {
     QStringList categories;
     categories << "全部";              //默认显示全部
 
-    //从数据库查询分类
-    QSqlQuery query = DBManager::instance().executeQuery(
-        "SELECT DISTINCT category FROM products WHERE category != ''"
-        );
-
-    while (query.next()) {
-        categories << query.value(0).toString();              //查询后添加到字符串列表
+    // 调用 DBManager的getProductsByCategory接口,传空字符串获取所有分类商品
+    QList<QMap<QString, QVariant>> products = DBManager::instance().getProductsByCategory("");
+    QSet<QString> categorySet;                                                  // 用集合去重
+    for (const auto& product : products) {
+        QString category = product["category"].toString();                      //历遍商品，把category字段的值提取出来添加到categorySet集合中
+        if (!category.isEmpty()) {
+            categorySet.insert(category);
+        }
+    }
+    // 将集合转成字符串列表
+    for (const QString& category : categorySet) {                               //手动将 QSet 转换为 QStringList
+        categories.append(category);
     }
     return categories;
 }
@@ -48,17 +131,29 @@ QStringList Check_Mainwindow::getcategory() {
 
 //获取商品分类并创建分类按钮
 void Check_Mainwindow::initcategory(){
-    QStringList categories = getcategory();                    //先获取商品分类
-    QHBoxLayout* categoriesLayout = qobject_cast<QHBoxLayout*>(
-        findChild<QGroupBox*>("productgroupBox")->layout()->itemAt(0)->layout()//将groupBox里的按钮改为水平布局
-        );
+
+    QStringList categories = getcategory();                                    //查找布局
+    QHBoxLayout* categoriesLayout = findChild<QHBoxLayout*>("categoryButtonsLayout");
+    if (!categoriesLayout) {
+        qCritical() << "未找到分类按钮布局 categoryButtonsLayout!";
+        return;
+    }
+
 
     for (const QString& category : categories) {
-        QPushButton* btn = new QPushButton(category);
+        QPushButton* btn = new QPushButton(category,categoryWidget);
         btn->setCheckable(true);                                //设置为单选按钮
         if (category == "全部") btn->setChecked(true);          //默认选中“全部”分类
         m_categoryButtons.push_back(btn);                      //把按钮存入容器
         categoriesLayout->addWidget(btn);                      //把每个按钮添加到布局中
+
+        // 连接按钮点击事件
+        connect(btn, &QPushButton::clicked, this, [this, btn]() {      //实现单选效果：遍历所有按钮，只选中当前点击的按钮
+            for (QPushButton* otherBtn : m_categoryButtons) {
+                otherBtn->setChecked(otherBtn == btn);
+            }
+            updateProduct(btn->text());                                //更新商品列表
+        });
     }
 
     // 初始显示全部商品
@@ -70,23 +165,22 @@ void Check_Mainwindow::initcategory(){
 //根据不同分类来更新商品列表
 void Check_Mainwindow::updateProduct(const QString& category){
     ui->productlistWidget->clear();
-    QString sql ="SELECT id,name,price,stock,category FROM products";   //创建sql字符串
-    QVariantList params;                                                //创建容器用来储存sql查询的分类参数
+    QList<QMap<QString, QVariant>> products;
 
-    if (category != "全部商品") {
-        sql+=" WHERE category=?";
-        params << category;                                             //添加筛选的条件
+    if (category == "全部") {
+        products = DBManager::instance().getAllProducts();                //全部商品，调用getAllProducts接口
+    } else {
+        products = DBManager::instance().getProductsByCategory(category); //指定分类，调用getProductsByCategory接口
     }
-    QSqlQuery query = DBManager::instance().executeQuery(sql, params);  //执行数据库查询
 
-    while (query.next()) {
-        Product product(
-            query.value("id").toInt(),
-            query.value("name").toString(),
+    for (const auto& productData : products) {
+        PRoduct product(
+            productData["id"].toInt(),
+            productData["name"].toString(),
             "",
-            query.value("price").toDouble(),
-            query.value("stock").toInt(),
-            query.value("category").toString()                           //构建商品对象
+            productData["price"].toDouble(),
+            productData["stock"].toInt(),
+            productData["category"].toString()
             );
 
         QListWidgetItem* item = new QListWidgetItem;
@@ -123,7 +217,7 @@ void Check_Mainwindow::updateCartview(){
     m_cartModel->removeRows(0, m_cartModel->rowCount());                              //清空购物车界面的旧显示（从第0行删到总行）
 
     for (const CartItem& item:m_cartItems) {                                          //逐个处理m_cartItems中的商品条目
-        const Product& product=item.product();                                        //获取商品信息
+        const PRoduct& product=item.product();                                        //获取商品信息
 
         QList<QStandardItem*> rowItems;                                               //把商品信息转化为QStandardItem类型的单元格数据，每行有四个单元格
         rowItems<<new QStandardItem(product.name());
@@ -141,27 +235,23 @@ void Check_Mainwindow::updateCartview(){
 
 
 //双击商品弹出选择数量的对话框，随后将商品加入购物车
-void Check_Mainwindow::on_chooselistWidget_itemDoubleClicked(QListWidgetItem *item){
+void Check_Mainwindow::chooselistWidgetitemDoubleClicked(QListWidgetItem *item){
     if (!item) return;                                                 //确保选中有效商品
 
     int productId = item->data(Qt::UserRole).toInt();                  //获取选中的商品ID
 
-    QSqlQuery query = DBManager::instance().executeQuery(              //查询商品详情
-        "SELECT id, name, price, stock FROM products WHERE id = ?",
-        {productId}
-        );
-
-    if (!query.next()) {                                                //验证商品存在性
+    QMap<QString, QVariant> productData = DBManager::instance().getProductById(productId);      //调用getProductById接口查询商品详情
+    if (productData.isEmpty()) {
         QMessageBox::warning(this, "错误", "商品信息不存在");
         return;
     }
 
-    Product product(                                                     //构建商品对象
+    PRoduct product(
         productId,
-        query.value("name").toString(),
+        productData["name"].toString(),
         "",
-        query.value("price").toDouble(),
-        query.value("stock").toInt()
+        productData["price"].toDouble(),
+        productData["stock"].toInt()
         );
 
     if (product.stock() <= 0) {                                           //检查商品库存
@@ -196,8 +286,8 @@ void Check_Mainwindow::on_chooselistWidget_itemDoubleClicked(QListWidgetItem *it
 }
 
 
-//改数键的功能
-void Check_Mainwindow::on_changebtn_clicked()
+//改数键
+void Check_Mainwindow::changebtnclicked()
 {   QModelIndex index=ui->cartlistView->currentIndex();                                 //获取购物车项目索引
     if (!index.isValid()) {                                                             //如果没有索引就给出提示
         QMessageBox::warning(this, "提示", "请先选择要修改的商品");
@@ -208,11 +298,9 @@ void Check_Mainwindow::on_changebtn_clicked()
     int productId=m_cartModel->item(row, 0)->data(Qt::UserRole).toInt();
     int currentQuantity=m_cartModel->item(row, 2)->text().toInt();
 
-    QSqlQuery query=DBManager::instance().executeQuery(                                 //查询数据库中的商品库存
-        "SELECT stock FROM products WHERE id = ?", {productId}
-        );
-    if (!query.next()) return;
-    int maxStock=query.value("stock").toInt();
+    QMap<QString, QVariant> productData = DBManager::instance().getProductById(productId);  //调用getProductById接口查询商品库存
+    if (productData.isEmpty()) return;
+    int maxStock = productData["stock"].toInt();
 
     QuantityDialog dialog(maxStock, this);                                              //弹出修改数量对话框
     dialog.setWindowTitle("修改数量");
@@ -234,21 +322,62 @@ void Check_Mainwindow::on_changebtn_clicked()
 
 
 
-//删除键的功能
-void Check_Mainwindow::on_deletebtn_clicked()
-{   QModelIndex index=ui->cartlistView->currentIndex();
-    if (!index.isValid()) {
+//删除键
+void Check_Mainwindow::deletebtnclicked()
+{   QModelIndex index=ui->cartlistView->currentIndex();                             //获取选中项的模型索引
+    if (!index.isValid()) {                                                         //检查索引是否有效
         QMessageBox::warning(this, "提示", "请先选择要删除的商品");
         return;
     }
 
-    int productId = m_cartModel->item(index.row(), 0)->data(Qt::UserRole).toInt();
-    for (auto it = m_cartItems.begin(); it != m_cartItems.end(); ++it) {
+    int productId = m_cartModel->item(index.row(), 0)->data(Qt::UserRole).toInt();   //通过索引获取商品ID
+    for (auto it = m_cartItems.begin(); it != m_cartItems.end(); ++it) {             //历遍购物车，检查获得的商品ID是否与要删除的商品ID一致
         if (it->product().id() == productId) {
             m_cartItems.erase(it);
             break;
         }
     }
-    updateCartview();
+    updateCartview();                                                                 //更新购物车
 }
 
+
+
+//清空键
+void Check_Mainwindow::clearbtnclicked()
+{
+    if (m_cartItems.empty()) {                                                         //检查购物车是否为空
+        QMessageBox::information(this, "提示", "购物车已经是空的");
+        return;
+    }
+
+    QMessageBox::StandardButton reply = QMessageBox::question(                         //确认对话框
+        this, "确认清空", "确定要清空购物车中的所有商品吗？",
+        QMessageBox::Yes | QMessageBox::No
+        );
+
+    if (reply == QMessageBox::Yes) {
+
+        m_cartItems.clear();
+
+        updateCartview();                                                                //更新购物车显示
+
+        QMessageBox::information(this, "成功", "购物车已清空");
+    }
+}
+
+
+//支付键
+void Check_Mainwindow::paybtnclicked()
+{
+    if (m_cartItems.empty()) {
+        QMessageBox::information(this, "提示", "购物车为空，无需支付");
+        return;
+    }
+
+    // 显示支付成功提示
+    QMessageBox::information(this, "支付成功", "感谢你的购买，支付已完成！");
+
+    // 清空购物车
+    m_cartItems.clear();
+    updateCartview();
+}

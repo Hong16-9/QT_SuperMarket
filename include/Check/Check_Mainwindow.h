@@ -12,6 +12,11 @@
 #include<QSpinBox>
 #include<QPushButton>
 #include<QStandardItemModel>
+#include<QSet>
+#include<QList>
+#include<QString>
+#include<QCoreApplication>
+#include<QDebug>
 
 
 
@@ -24,9 +29,9 @@ class Check_Mainwindow;
 QT_END_NAMESPACE
 
 //商品类定义
-class Product {
+class PRoduct {
 public:
-    Product(int id = -1, const QString& name = "", const QString& barcode = "",
+    PRoduct(int id = -1, const QString& name = "", const QString& barcode = "",
             double price = 0.0, int stock = 0, const QString& category = "")
         : m_id(id), m_name(name), m_barcode(barcode), m_price(price),
         m_stock(stock), m_category(category) {}
@@ -39,12 +44,12 @@ public:
     QString category() const { return m_category; }
 
 private:
-          int m_id;           // 商品ID
-QString m_name;     // 商品名称
-QString m_barcode;  // 条形码
-double m_price;     // 单价
-int m_stock;        // 库存
-QString m_category; // 分类
+    int m_id;           // 商品ID
+    QString m_name;     // 商品名称
+    QString m_barcode;  // 条形码
+    double m_price;     // 单价
+    int m_stock;        // 库存
+    QString m_category; // 分类
 };
 
 //对话框类定义，方便后续购物时弹出商品数量选择的对话框
@@ -89,10 +94,10 @@ private:
 //购物车类定义
 class CartItem {
 public:
-    CartItem(const Product &product, int quantity=1)
+    CartItem(const PRoduct &product, int quantity=1)
         : m_product(product), m_quantity(quantity) {}                //把商品对象赋给m_product，把商品数量赋给m_quantity
 
-    const Product &product() const {return m_product; }              //获取商品对象
+    const PRoduct &product() const {return m_product; }              //获取商品对象
     int quantity() const {return m_quantity; }                       //获取购买数量
     void setQuantity(int quantity) {m_quantity=quantity; }           //允许购物车中修改购买数量
 
@@ -101,10 +106,11 @@ public:
     }
 
 private:
-    Product m_product;  // 商品信息
+    PRoduct m_product;  // 商品信息
     int m_quantity;     // 数量
 };
 
+//主窗口类定义
 class Check_Mainwindow : public QMainWindow
 {
     Q_OBJECT
@@ -115,18 +121,20 @@ public:
 
 
 private slots:
-    void on_chooselistWidget_itemDoubleClicked(QListWidgetItem *item);
+    void chooselistWidgetitemDoubleClicked(QListWidgetItem *item);
 
-    void on_pushButton_2_clicked();
+    void changebtnclicked();
 
-    void on_changebtn_clicked();
+    void deletebtnclicked();
 
-    void on_deletebtn_clicked();
+    void clearbtnclicked();
+
+    void paybtnclicked();
+
 
 private:
     Ui::Check_Mainwindow *ui;
-    void setupDatabase();
-    void setupUI();
+    void setupUI();                                           //设置UI
     void updateProduct(const QString &category="全部");        //根据不同分类来更新商品列表
     void initcategory();                                      //获取商品分类并创建分类按钮
     QStringList getcategory();                                //获取所有商品分类
@@ -136,6 +144,7 @@ private:
     QListView *m_cartListView;                    //购物车列表视图
     QStandardItemModel *m_cartModel;              //购物车数据模型
     std::vector<QPushButton*> m_categoryButtons;  //分类按钮
+    QWidget* categoryWidget;                      //分类按钮容器
 
 
     std::vector<CartItem> m_cartItems;            //创建数据模型

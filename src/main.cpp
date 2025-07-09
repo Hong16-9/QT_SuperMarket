@@ -1,6 +1,8 @@
-#include "LogIn/LoginDialog.h"
+
 #include "LogIn/dbmanager.h"
-#include "Product/Product.h"
+
+#include "Check/Check_Mainwindow.h"
+
 
 #include <QApplication>
 
@@ -15,9 +17,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    Product c;
-    c.show();
-    LoginDialog w;
-    w.show();
+
+    Check_Mainwindow m;
+    m.show();
     return a.exec();
 }

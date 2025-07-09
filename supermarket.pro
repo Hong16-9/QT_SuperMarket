@@ -12,6 +12,7 @@ CONFIG += c++17
 INCLUDEPATH += $$PWD/include
 
 SOURCES += \
+    src/Check/Check_Mainwindow.cpp \
     src/LogIn/LoginDialog.cpp \
     src/Product/AddProductDialog.cpp \
     src/Product/StockDialog.cpp \
@@ -20,6 +21,7 @@ SOURCES += \
     src/Product/Product.cpp \
 
 HEADERS += \
+    include/Check/Check_Mainwindow.h \
     include/LogIn/LoginDialog.h \
     include/LogIn/dbmanager.h \
     include/Product/AddProductDialog.h \
@@ -27,6 +29,7 @@ HEADERS += \
     include/Product/StockDialog.h
 
 FORMS += \
+    src/Check/Check_Mainwindow.ui \
     src/LogIn/LoginDialog.ui \
     src/Product/Product.ui
 
