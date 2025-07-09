@@ -14,6 +14,7 @@ Product::Product(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Product),
     dbManager(&DBManager::instance())
+
 {
     ui->setupUi(this);  // 加载UI Designer设计的界面
     initUI();           // 关联UI控件

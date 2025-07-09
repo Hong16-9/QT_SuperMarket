@@ -18,7 +18,7 @@ class Product : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit Product(QWidget *parent = nullptr);
+    explicit Product(QString name,QWidget *parent = nullptr);
     ~Product() override;
 
 private slots:
@@ -35,6 +35,7 @@ signals:
     void backToLogin();
 
 private:
+
     Ui::Product *ui;                  // UI Designer生成的界面对象
     DBManager *dbManager;             // 数据库管理器（单例）
     QStandardItemModel *productModel; // 表格数据模型
@@ -49,6 +50,7 @@ private:
     void loadProducts();              // 加载商品数据
     void updateCategoryComboBox();    // 更新分类下拉框
     void searchProducts(const QString &keyword, const QString &category); // 搜索商品
+
 };
 
 #endif // PRODUCT_H
