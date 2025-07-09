@@ -2,69 +2,75 @@
 #define STOCKDIALOG_H
 
 #include <QDialog>
-#include <QComboBox>
 #include <QSpinBox>
-#include <QPushButton>
+#include <QLabel>
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QMap>
 #include <QPair>
-#include <QLabel>
-#include <QString>
+#include <QComboBox>
+#include <QPushButton>
+#include <QHeaderView>
+
+// 操作类型：入库/出库
+enum class StockOperation {
+    In,  // 入库
+    Out  // 出库
+};
 
 class StockDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    // 新增：支持单个商品入库的构造函数
-    explicit StockDialog(const QString &productName, int currentStock, QWidget *parent = nullptr);
-    // 原有：批量入库构造函数
-    explicit StockDialog(QWidget *parent = nullptr);
-    ~StockDialog();
+    // 单个商品操作（支持入库/出库）
+    StockDialog(StockOperation op, const QString &productName, int currentStock, QWidget *parent = nullptr);
+    // 批量操作（支持入库/出库）
+    StockDialog(StockOperation op, QWidget *parent = nullptr);
+    ~StockDialog() override;
 
-    // 获取入库信息（商品ID与入库数量的配对列表）
-    QList<QPair<int, int>> getStockUpdates() const;
-    // 新增：获取单个商品的入库数量（针对单个商品场景）
-    int getAddStock() const;
+    // 获取库存变动列表（批量模式）：<商品ID, 变动量>（入库为正，出库为负）
+    QList<QPair<int, int>> getStockChanges() const;
+    // 获取单个商品的变动量（单个模式）
+    int getChangeAmount() const;
 
 private slots:
+    void onOkButtonClicked();
     void onCategoryChanged(const QString &category);
     void onProductChanged(const QString &productText);
     void onAddToTableClicked();
     void onRemoveFromTableClicked();
     void onClearTableClicked();
-    void onOkButtonClicked();
 
 private:
-    // 初始化界面（通用）
     void initUI();
-    // 初始化批量入库界面
-    void initBatchUI();
-    // 初始化单个商品入库界面
     void initSingleProductUI(const QString &productName, int currentStock);
+    void initBatchUI();
 
-    QComboBox *categoryComboBox;
-    QComboBox *productComboBox;
+    // 操作类型（核心标识）
+    StockOperation operation;
+    // 模式标识
+    bool isSingleProductMode;
+    // 单个商品信息
+    int singleProductId = -1;
+    int currentStock = 0;
+
+    // UI组件
+    QSpinBox *quantitySpinBox;
     QLabel *currentStockLabel;
     QLabel *quantityLabel;
-    QSpinBox *quantitySpinBox;
+    QPushButton *okButton;
+    QPushButton *cancelButton;
     QPushButton *addButton;
     QPushButton *removeButton;
     QPushButton *clearButton;
-    QPushButton *okButton;
-    QPushButton *cancelButton;
+    QComboBox *categoryComboBox;
+    QComboBox *productComboBox;
     QTableView *tableView;
     QStandardItemModel *stockModel;
-
     QMap<QString, int> productIdMap;
-    int currentStock;
-    // 标记是否为单个商品模式
-    bool isSingleProductMode;
-    // 单个商品模式下的商品ID
-    int singleProductId;
 
-    // 数据库接口（实际项目中应调用DBManager）
+    // 数据库接口（复用原有）
     QList<QMap<QString, QVariant>> getAllProducts();
     QList<QMap<QString, QVariant>> getProductsByCategory(const QString &category);
     QMap<QString, QVariant> getProductById(int productId);
