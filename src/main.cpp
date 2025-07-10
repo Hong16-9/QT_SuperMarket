@@ -1,7 +1,8 @@
 #include "LogIn/LoginDialog.h"
 #include "LogIn/dbmanager.h"
-#include"LogIn/registerdialog.h"
+#include "LogIn/registerdialog.h"
 #include "Product/Product.h"
+#include "Check/Check_Mainwindow.h"
 
 #include <QApplication>
 #include <QMessageBox>
@@ -22,23 +23,26 @@ int main(int argc, char *argv[])
     // 创建商品管理页
     Product *productPage=nullptr;
 
+    //创建收银界面
+    Check_Mainwindow *checkwindow=nullptr;
+
     // 连接登录成功信号
     QObject::connect(&loginDialog, &LoginDialog::switch_to_productManage,
                      [&](const QString &userName) {
-        if (productPage) {
-            productPage->deleteLater(); // 清理旧窗口
-        }
-        productPage = new Product(userName);
+                         if (productPage) {
+                             productPage->deleteLater(); // 清理旧窗口
+                         }
+                         productPage = new Product(userName);
 
-        // 将返回信号连接移到窗口创建后
-        QObject::connect(productPage, &Product::backToLogin, [&]() {
-            productPage->hide();
-            loginDialog.show();
-        });
+                         // 将返回信号连接移到窗口创建后
+                         QObject::connect(productPage, &Product::backToLogin, [&]() {
+                             productPage->hide();
+                             loginDialog.show();
+                         });
 
-        loginDialog.hide();
-        productPage->show();
-    });
+                         loginDialog.hide();
+                         productPage->show();
+                     });
 
 
     // 连接登录对话框的信号
@@ -50,6 +54,9 @@ int main(int argc, char *argv[])
     QObject::connect(&loginDialog, &LoginDialog::switch_to_cashier, [&](QString username) {
         // 这里可以打开收银界面
         qDebug() << "收银员登录成功:" << username;
+        checkwindow=new Check_Mainwindow(username);
+        loginDialog.hide();
+        checkwindow->show();
         // CashierWindow cashierWindow(username);
         // cashierWindow.show();
     });

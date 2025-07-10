@@ -6,12 +6,14 @@
 #include <QLineEdit>
 #include <QComboBox>
 
+
 // 引入数据库接口
 #include "LogIn/dbmanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Product; }
 QT_END_NAMESPACE
+
 
 class Product : public QMainWindow
 {
@@ -36,6 +38,7 @@ signals:
 
 private:
 
+
     Ui::Product *ui;                  // UI Designer生成的界面对象
     DBManager *dbManager;             // 数据库管理器（单例）
     QStandardItemModel *productModel; // 表格数据模型
@@ -45,6 +48,7 @@ private:
     QComboBox *categoryComboBox;      // 分类组合框（外部）
 
     // 辅助函数
+
     void initUI();                    // 初始化UI关联
     void setupConnections();          // 连接信号与槽
     void loadProducts();              // 加载商品数据
@@ -52,6 +56,7 @@ private:
     void searchProducts(const QString &keyword, const QString &category); // 搜索商品
 
     QString name;
+
 };
 
 #endif // PRODUCT_H
