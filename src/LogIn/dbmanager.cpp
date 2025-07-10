@@ -460,3 +460,19 @@ bool DBManager::deleteProduct(int productId)
         {productId}
     );
 }
+bool DBManager::updateProductPrice(int productId, double newPrice)
+{
+    // 验证价格非负
+    if (newPrice < 0) {
+        qWarning() << "价格不能为负数";
+        return false;
+    }
+
+    QVariantList params;
+    params << newPrice << productId;
+
+    return executeTransaction(
+        "UPDATE products SET price = ? WHERE id = ?",
+        params
+    );
+}

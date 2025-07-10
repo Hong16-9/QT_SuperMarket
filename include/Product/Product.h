@@ -51,6 +51,7 @@ private:
     void updateCategoryComboBox();    // 更新分类下拉框
     void searchProducts(const QString &keyword, const QString &category); // 搜索商品
 
+    QString name;
 };
 
 #endif // PRODUCT_H
