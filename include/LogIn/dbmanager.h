@@ -78,6 +78,8 @@ public:
     // 新增管理员认证方法
     bool authenticateAdmin(const QString& adminUsername, const QString& adminPassword);
 
+    // 新增：获取当月商品销量
+    QList<QMap<QString, QVariant>> getMonthlyProductSales();
 private:
     // 事务执行
     bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());
