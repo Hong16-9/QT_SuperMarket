@@ -32,6 +32,8 @@ void RegisterDialog::on_registerButton_clicked()
     QString username = ui->usernameEdit->text().trimmed();
     QString password = ui->passwordEdit->text();
     QString confirmPassword = ui->confirmPasswordEdit->text();
+    QString gender = ui->genderCombo->currentText();
+    int age = ui->ageSpinBox->value();
 
     // 验证输入
     if (adminUsername.isEmpty() || adminPassword.isEmpty()) {
@@ -61,7 +63,7 @@ void RegisterDialog::on_registerButton_clicked()
     }
 
     // 尝试注册用户
-    if (DBManager::instance().registerUser(username, password)) {
+    if (DBManager::instance().registerUser(username, password,gender,age)) {
         QMessageBox::information(this, "注册成功", "账户创建成功，请登录");
         emit registrationSuccess(username);
         emit switch_back();

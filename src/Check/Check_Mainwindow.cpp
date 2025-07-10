@@ -375,8 +375,46 @@ void Check_Mainwindow::paybtnclicked()
         return;
     }
 
-    // 显示支付成功提示
-    QMessageBox::information(this, "支付成功", "感谢你的购买，支付已完成！");
+    // 计算总金额
+    double total = 0;
+    for (const auto &item : m_cartItems) {
+        total += item.getTotalPrice();
+    }
+
+//    // 检查会员
+//    QString memberPhone = ui->memberPhoneEdit->text().trimmed(); // 假设有会员输入框
+//    double finalDiscount = 1.0;
+//    int pointsEarned = static_cast<int>(total); // 1元=1积分
+
+//    if (!memberPhone.isEmpty()) {
+//        // 获取当前折扣
+//        double baseDiscount = DBManager::instance().getMemberDiscount(memberPhone);
+
+//        // 获取当前积分
+//        int currentPoints = DBManager::instance().getMemberPoints(memberPhone);
+
+//        // 计算积分折扣
+//        double pointsDiscount = DBManager::instance().calculateDiscountByPoints(currentPoints);
+
+//        // 应用最优惠折扣
+//        finalDiscount = qMin(baseDiscount, pointsDiscount);
+
+//        // 更新会员积分
+//        DBManager::instance().updateMemberPoints(memberPhone, currentPoints + pointsEarned);
+//    }
+
+//    // 应用折扣
+//    double finalTotal = total * finalDiscount;
+
+//    // 显示支付信息
+//    QString message = QString("支付金额: %1元").arg(finalTotal, 0, 'f', 2);
+//    if (!memberPhone.isEmpty()) {
+//        message += QString("\n折扣率: %1%").arg(finalDiscount * 100);
+//        message += QString("\n获得积分: %1").arg(pointsEarned);
+//    }
+
+//    QMessageBox::information(this, "支付成功", message);
+    QMessageBox::information(this, "支付成功","");
 
     // 清空购物车
     m_cartItems.clear();
