@@ -34,7 +34,8 @@ FORMS += \
     src/Check/Check_Mainwindow.ui \
     src/LogIn/LogInDialog.ui \
     src/Product/Product.ui \
-    src/LogIn/registerdialog.ui
+    src/LogIn/registerdialog.ui \
+    src/Check/Check_Mainwindow.ui
 
 
 # Default rules for deployment.

@@ -1,6 +1,8 @@
 #include "LogIn/LoginDialog.h"
-#include"LogIn/registerdialog.h"
+#include "LogIn/dbmanager.h"
+#include "LogIn/registerdialog.h"
 #include "Product/Product.h"
+#include "Check/Check_Mainwindow.h"
 
 #include <QApplication>
 #include <QMessageBox>
@@ -20,6 +22,9 @@ int main(int argc, char *argv[])
 
     // 创建商品管理页
     Product *productPage=nullptr;
+
+    //创建收银界面
+    Check_Mainwindow *checkwindow=nullptr;
 
     // 连接登录成功信号
     QObject::connect(&loginDialog, &LoginDialog::switch_to_productManage,
@@ -49,6 +54,9 @@ int main(int argc, char *argv[])
     QObject::connect(&loginDialog, &LoginDialog::switch_to_cashier, [&](QString username) {
         // 这里可以打开收银界面
         qDebug() << "收银员登录成功:" << username;
+        checkwindow=new Check_Mainwindow(username);
+        loginDialog.hide();
+        checkwindow->show();
         // CashierWindow cashierWindow(username);
         // cashierWindow.show();
     });

@@ -1,8 +1,9 @@
 #include "Check/Check_Mainwindow.h"
 #include "ui_Check_Mainwindow.h"
 
-Check_Mainwindow::Check_Mainwindow(QWidget *parent)
+Check_Mainwindow::Check_Mainwindow(QString name,QWidget *parent)
     : QMainWindow(parent)
+    , name(name)
     , ui(new Ui::Check_Mainwindow)
 {
     if (!DBManager::instance().initialize()) {
