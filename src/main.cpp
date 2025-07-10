@@ -22,18 +22,22 @@ int main(int argc, char *argv[])
     // 创建商品管理页
     Product *productPage=nullptr;
 
-    // 连接登录成功信号到商品管理页的显示
+    // 连接登录成功信号
     QObject::connect(&loginDialog, &LoginDialog::switch_to_productManage,
                      [&](const QString &userName) {
-        productPage=new Product(userName);
+        if (productPage) {
+            productPage->deleteLater(); // 清理旧窗口
+        }
+        productPage = new Product(userName);
+
+        // 将返回信号连接移到窗口创建后
+        QObject::connect(productPage, &Product::backToLogin, [&]() {
+            productPage->hide();
+            loginDialog.show();
+        });
+
         loginDialog.hide();
         productPage->show();
-    });
-
-    // 连接商品管理页的返回信号到登录页的显示
-    QObject::connect(productPage, &Product::backToLogin, [&]() {
-        productPage->hide();
-        loginDialog.show();
     });
 
 
