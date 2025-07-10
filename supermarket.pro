@@ -19,19 +19,22 @@ SOURCES += \
     src/main.cpp \
     src/LogIn/dbmanager.cpp \
     src/Product/Product.cpp \
+    src/LogIn/registerdialog.cpp
 
 HEADERS += \
     include/Check/Check_Mainwindow.h \
     include/LogIn/LoginDialog.h \
     include/LogIn/dbmanager.h \
     include/Product/AddProductDialog.h \
+    include/Product/StockDialog.h \
     include/Product/Product.h \
-    include/Product/StockDialog.h
+    include/LogIn/registerdialog.h
 
 FORMS += \
-    src/Check/Check_Mainwindow.ui \
-    src/LogIn/LoginDialog.ui \
-    src/Product/Product.ui
+    src/LogIn/LogInDialog.ui \
+    src/Product/Product.ui \
+    src/LogIn/registerdialog.ui
+
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -42,3 +45,6 @@ DISTFILES += \
     src/LogIn/LogIn.pro.user \
     src/Product/Product.pro.user \
     supermarket.pro.user
+
+RESOURCES += \
+    icon.qrc

@@ -37,6 +37,7 @@ public:
     // 商品管理
     bool addProduct(const QString& name, const QString& barcode, double price, int stock, const QString& category = "");
     bool updateProductStock(int productId, int delta);
+    bool updateProductPrice(int productId, double newPrice); // 新增：修改单价
     bool deleteProduct(int productId);  // 新增：删除商品
     QList<QMap<QString, QVariant>> searchProducts(const QString& keyword);  // 新增：按关键词搜索
 
@@ -71,6 +72,11 @@ public:
     bool addSale(int cashierId, double total, double payment,
                  const QList<QVariantMap>& items,
                  const QString& memberPhone = "");
+    // 用户管理 - 新增注册功能
+    bool registerUser(const QString& username, const QString& password, const QString& role = "cashier");
+
+    // 新增管理员认证方法
+    bool authenticateAdmin(const QString& adminUsername, const QString& adminPassword);
 
 private:
     // 事务执行

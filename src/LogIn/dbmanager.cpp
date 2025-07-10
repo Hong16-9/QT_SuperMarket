@@ -180,15 +180,6 @@ bool DBManager::updateProductStock(int productId, int delta)
         );
 }
 
-// 新增：删除商品
-bool DBManager::deleteProduct(int productId)
-{
-    return executeTransaction(
-        "DELETE FROM products WHERE id = ?",
-        {productId}
-        );
-}
-
 // 新增：按关键词搜索商品（名称或条码）
 QList<QMap<QString, QVariant>> DBManager::searchProducts(const QString& keyword)
 {
@@ -411,4 +402,77 @@ QList<QMap<QString, QVariant>> DBManager::getMembersByName(const QString& name) 
         );
 
     QList<QMap<QString, QVariant>> results;
+}
+
+bool DBManager::authenticateAdmin(const QString& adminUsername, const QString& adminPassword)
+{
+    QSqlQuery query = executeQuery(
+        "SELECT password, role FROM users WHERE username = ?",
+        {adminUsername}
+    );
+
+    if (query.next()) {
+        QString storedHash = query.value(0).toString();
+        QString inputHash = encryptPassword(adminPassword);
+        QString role = query.value(1).toString();
+
+        // 验证密码和角色
+        if (storedHash == inputHash && role == "admin") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool DBManager::registerUser(const QString& username, const QString& password, const QString& role)
+{
+    // 检查用户名是否已存在
+    QSqlQuery checkQuery = executeQuery(
+        "SELECT COUNT(*) FROM users WHERE username = ?",
+        {username}
+    );
+
+    if (checkQuery.next() && checkQuery.value(0).toInt() > 0) {
+        qWarning() << "用户名已存在:" << username;
+        return false;
+    }
+
+    // 创建新用户
+    return createUser(username, password, role);
+}
+
+bool DBManager::deleteProduct(int productId)
+{
+    // 先检查该商品是否有销售记录
+    QSqlQuery checkQuery = executeQuery(
+        "SELECT COUNT(*) FROM sale_items WHERE product_id = ?",
+        {productId}
+    );
+
+    if (checkQuery.next() && checkQuery.value(0).toInt() > 0) {
+        qWarning() << "无法删除商品: 该商品已有销售记录";
+        return false;
+    }
+
+    return executeTransaction(
+        "DELETE FROM products WHERE id = ?",
+        {productId}
+    );
+}
+bool DBManager::updateProductPrice(int productId, double newPrice)
+{
+    // 验证价格非负
+    if (newPrice < 0) {
+        qWarning() << "价格不能为负数";
+        return false;
+    }
+
+    QVariantList params;
+    params << newPrice << productId;
+
+    return executeTransaction(
+        "UPDATE products SET price = ? WHERE id = ?",
+        params
+    );
 }
