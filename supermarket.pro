@@ -31,6 +31,7 @@ HEADERS += \
     include/LogIn/registerdialog.h
 
 FORMS += \
+    src/Check/Check_Mainwindow.ui \
     src/LogIn/LogInDialog.ui \
     src/Product/Product.ui \
     src/LogIn/registerdialog.ui \
