@@ -1,5 +1,6 @@
 #include "Check/Check_Mainwindow.h"
 #include "ui_Check_Mainwindow.h"
+#include "LogIn/LoginDialog.h"
 
 Check_Mainwindow::Check_Mainwindow(QWidget *parent)
     : QMainWindow(parent)
@@ -81,19 +82,12 @@ void Check_Mainwindow::setupUI(){
 
 
     //连接信号与槽
-    connect(ui->productlistWidget, &QListWidget::itemDoubleClicked,
-            this, &Check_Mainwindow::chooselistWidgetitemDoubleClicked);
-
-    connect(ui->changebtn, &QPushButton::clicked,
-            this, &Check_Mainwindow::changebtnclicked);
-
-    connect(ui->deletebtn, &QPushButton::clicked,
-            this, &Check_Mainwindow::deletebtnclicked);
-
-    connect(ui->clearbtn, &QPushButton::clicked,
-            this, &Check_Mainwindow::clearbtnclicked);
-    connect(ui->paybtn, &QPushButton::clicked,
-            this, &Check_Mainwindow::paybtnclicked);
+    connect(ui->productlistWidget, &QListWidget::itemDoubleClicked,this, &Check_Mainwindow::chooselistWidgetitemDoubleClicked);
+    connect(ui->changebtn, &QPushButton::clicked,this, &Check_Mainwindow::changebtnclicked);
+    connect(ui->deletebtn, &QPushButton::clicked,this, &Check_Mainwindow::deletebtnclicked);
+    connect(ui->clearbtn, &QPushButton::clicked,this, &Check_Mainwindow::clearbtnclicked);
+    connect(ui->paybtn, &QPushButton::clicked,this, &Check_Mainwindow::paybtnclicked);
+    connect(ui->backbtn,&QPushButton::clicked,this,&Check_Mainwindow::backbtnclicked);
 
     if (!ui) {
         qCritical() << "ui 未初始化!";
@@ -110,21 +104,33 @@ void Check_Mainwindow::setupUI(){
 //获取所有商品分类
 QStringList Check_Mainwindow::getcategory() {
     QStringList categories;
-    categories << "全部";              //默认显示全部
+    categories << "全部";                         //默认显示全部
 
-    // 调用 DBManager的getProductsByCategory接口,传空字符串获取所有分类商品
-    QList<QMap<QString, QVariant>> products = DBManager::instance().getProductsByCategory("");
-    QSet<QString> categorySet;                                                  // 用集合去重
-    for (const auto& product : products) {
-        QString category = product["category"].toString();                      //历遍商品，把category字段的值提取出来添加到categorySet集合中
-        if (!category.isEmpty()) {
+
+    //调用getAllProducts() 获取所有商品的ID
+    QList<QMap<QString, QVariant>> allProducts = DBManager::instance().getAllProducts();
+    QSet<int> productIds;                                 //存储所有商品的ID同时去重
+    for (const auto& product : allProducts) {
+        productIds.insert(product["id"].toInt());
+    }
+
+    //遍历每个商品ID，调用getProductById获取分类
+    QSet<QString> categorySet;  //分类的去重
+    for (int productId : productIds) {
+        QMap<QString, QVariant> product = DBManager::instance().getProductById(productId);  //调用getProductById 获取单个商品信息
+        if (product.isEmpty()) continue;              //跳过无效商品
+
+        QString category = product["category"].toString();
+        if (!category.isEmpty()) {                    //只收集非空分类
             categorySet.insert(category);
         }
     }
-    // 将集合转成字符串列表
-    for (const QString& category : categorySet) {                               //手动将 QSet 转换为 QStringList
+
+    //将去重后的分类添加到列表
+    for (const QString& category : categorySet) {
         categories.append(category);
     }
+
     return categories;
 }
 
@@ -138,6 +144,7 @@ void Check_Mainwindow::initcategory(){
         qCritical() << "未找到分类按钮布局 categoryButtonsLayout!";
         return;
     }
+
 
 
     for (const QString& category : categories) {
@@ -261,27 +268,49 @@ void Check_Mainwindow::chooselistWidgetitemDoubleClicked(QListWidgetItem *item){
 
 
     //弹出模态的数量选择对话框
-    QuantityDialog dialog(product.stock(), this);                         //传递商品库存
-    if (dialog.exec()==QDialog::Accepted) {
-        int quantity=dialog.getQuantity();                                //返回用户选择的数量
+    QuantityDialog dialog(product.stock(), this);
+    if (dialog.exec() != QDialog::Accepted) {
+        return; //用户取消选择，直接返回
+    }
+    int addQuantity = dialog.getQuantity();  //新添商品数量
 
+    //检查购物车中该商品的已有数量
+    int existingQuantity = 0;
+    bool found = false;
+    for (const auto& cartItem : m_cartItems) {
+        if (cartItem.product().id() == productId) {
+            existingQuantity = cartItem.quantity();
+            found = true;
+            break;
+        }
+    }
 
-        bool found=false;                                                 //检查是否已在购物车中
-        for (auto& cartItem:m_cartItems) {                                //历遍购物车，如果在购物车中（id相同）就合并商品数量
-            if (cartItem.product().id()==productId) {
-                cartItem.setQuantity(cartItem.quantity()+quantity);
-                found=true;
+    //计算已有数量+新添数量是否超过库存，超过就return
+    if (existingQuantity + addQuantity > product.stock()) {
+        QMessageBox::warning(this, "库存不足",
+                             QString("当前库存仅%1个，无法添加%2个（购物车中已有%3个）")
+                                 .arg(product.stock())
+                                 .arg(addQuantity)
+                                 .arg(existingQuantity));
+        return; //不执行添加操作
+    }
+
+    //若未超过库存，则更新购物车
+    if (found) {
+        //若购物车中已有该商品，就更新数量
+        for (auto& cartItem : m_cartItems) {
+            if (cartItem.product().id() == productId) {
+                cartItem.setQuantity(existingQuantity + addQuantity);
                 break;
             }
         }
-
-
-        if (!found) {
-            m_cartItems.emplace_back(product,quantity);                     //不在购物车则添加至购物车中
-        }
-
-        updateCartview();
+    } else {
+        //若购物车中没有该商品，就新加商品
+        m_cartItems.emplace_back(product, addQuantity);
     }
+
+    updateCartview(); // 刷新购物车显示
+
 
 }
 
@@ -369,15 +398,193 @@ void Check_Mainwindow::clearbtnclicked()
 //支付键
 void Check_Mainwindow::paybtnclicked()
 {
+   /* //检查购物车是否为空
     if (m_cartItems.empty()) {
         QMessageBox::information(this, "提示", "购物车为空，无需支付");
         return;
     }
 
-    // 显示支付成功提示
-    QMessageBox::information(this, "支付成功", "感谢你的购买，支付已完成！");
+    //计算购物车总金额
+    double total = 0;
+    for (const auto& item : m_cartItems) {
+        total += item.getTotalPrice();
+    }
 
-    // 清空购物车
-    m_cartItems.clear();
-    updateCartview();
+    //会员折扣处理
+    bool hasmember=false;
+    double discount = 1.0; //默认无折扣
+    QString memberPhone;
+
+
+
+    //弹出对话框询问用户是否有会员
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, "会员", "是否使用会员折扣?",
+        QMessageBox::Yes | QMessageBox::No             //点击yes进入会员流程，点击no正常结算
+        );
+
+    if (reply == QMessageBox::Yes) {
+        //获取会员手机号
+        bool ok;
+        memberPhone = QInputDialog::getText(                 //储存用户输入的手机号
+            this, "会员", "请输入会员手机号:",
+            QLineEdit::Normal, "", &ok
+            );
+
+        if (ok && !memberPhone.isEmpty()) {                  //确保用户点击了确认并且手机号不为空
+            DBManager& db =DBManager::instance();
+            discount=db.getMemberDiscount(memberPhone);     //调用DBManager获取会员折扣率
+
+            if (discount < 1.0) { // 折扣有效（小于1.0表示有折扣）
+                hasmember=true;
+                QMessageBox::information(this, "会员信息",
+                                         QString("会员 %1\n折扣率: %.1f折").arg(memberPhone).arg(discount * 10));
+            } else {
+                QMessageBox::warning(this, "会员信息",
+                                     "该手机号不是会员或折扣无效，将按原价支付");
+                discount = 1.0;            //重置为无折扣
+            }
+        }
+    }
+
+    double discountedTotal=total*discount;       //计算折扣后金额
+
+
+    //弹出对话框让用户输入支付金额
+    bool ok;
+    double payment = QInputDialog::getDouble(
+        this,
+        "支付",
+        QString("应付金额: %.2f元\n请输入实付金额:").arg(discountedTotal),
+        discountedTotal, // 默认值为应付金额
+        0,               // 最小值
+        1000000,         // 最大值
+        2,               // 小数位数
+        &ok
+        );
+
+    if (!ok||payment<discountedTotal) {                              //点击取消或者点击ok但是实付金额不够都会警告
+        if(ok) QMessageBox::warning(this, "支付失败", "实付金额不足");
+        return;
+    }
+
+    double change = payment - discountedTotal;           //计算找零
+
+
+
+
+
+
+
+    //数据库事务处理
+    DBManager& db = DBManager::instance();
+    QSqlDatabase sqlDb = QSqlDatabase::database();       //获取当前数据库连接
+    sqlDb.transaction();                                 //手动开始事务
+    bool success = true;                                 //标记操作成功与否
+
+
+    //历遍购物车商品进行库存减扣
+    for (const auto& cartItem : m_cartItems) {
+        int productId = cartItem.product().id();
+        int buyQuantity = cartItem.quantity();
+
+        //直接使用SQL语句扣减库存，同时检查库存是否足够
+        QSqlQuery query;
+        query.prepare("UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?");
+        query.addBindValue(buyQuantity);              //减扣商品数量
+        query.addBindValue(productId);                //商品ID
+        query.addBindValue(buyQuantity);              //确保库存足够
+
+        //执行SQL并检查结果
+        if (!query.exec() || query.numRowsAffected() == 0) {
+            success = false;
+            qCritical() << "库存更新失败，可能库存不足:" << query.lastError().text();
+            break;
+        }
+    }
+
+
+    //添加销售记录
+    if (success) {                                      //仅当库存扣减成功后，才添加销售记录
+        QList<QVariantMap> saleItems;                   //存储销售明细
+        for (const auto& cartItem : m_cartItems) {
+            QVariantMap item;
+            item["product_id"] = cartItem.product().id();    //商品ID
+            item["quantity"] = cartItem.quantity();          //数量
+            item["price"] = cartItem.product().price();      //单价
+            saleItems.append(item);
+        }
+
+        //调用DBManager的addSale接口添加销售记录和明细
+        if (!db.addSale(cashierId1, total * discount, payment=total, saleItems, memberPhone)) {
+            success = false;
+            qCritical() << "添加销售记录失败";
+        }
+    }
+
+    //提交事务
+    if (success) {
+        if (sqlDb.commit()) {
+            //支付成功处理
+            QMessageBox::information(this, "支付成功",
+                                     QString("交易完成！\n"
+                                             "%1\n"
+                                             "应付金额：%.2f元\n"
+                                             "实付金额：%.2f元\n"
+                                             "找零：%.2f元")
+                                         .arg(hasmember ? QString("会员折扣: %.1f折").arg(discount * 10) : "无折扣")
+                                         .arg(discountedTotal, 0, 'f', 2)
+                                         .arg(payment, 0, 'f', 2)
+                                         .arg(change, 0, 'f', 2));
+
+            // 清空购物车并更新界面
+            m_cartItems.clear();
+            updateCartview();
+
+            // 刷新商品列表（显示最新库存）
+            QString currentCategory = "全部";
+            for (QPushButton* btn : m_categoryButtons) {
+                if (btn->isChecked()) {
+                    currentCategory = btn->text();
+                    break;
+                }
+            }
+            updateProduct(currentCategory);
+        } else {
+            //提交事务失败
+            QMessageBox::critical(this, "支付失败", "提交事务失败:" + sqlDb.lastError().text());
+        }
+    } else {
+        // 回滚事务
+        sqlDb.rollback();
+        QMessageBox::critical(this, "支付失败", "库存不足或数据库错误");
+    }
+*/
+}
+
+
+void Check_Mainwindow::backbtnclicked(){
+    //询问用户是否确认返回
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, "确认返回", "返回登录界面将清空当前购物车，是否继续？",
+        QMessageBox::Yes | QMessageBox::No
+        );
+
+    if (reply == QMessageBox::Yes) {
+        //清空购物车
+        m_cartItems.clear();
+        updateCartview();
+
+        // 隐藏当前窗口
+        this->close();
+
+        // 创建并显示登录窗口
+        LoginDialog* loginDialog = new LoginDialog();
+        // 确保登录窗口关闭时释放资源
+        loginDialog->setAttribute(Qt::WA_DeleteOnClose);
+        // 显示登录窗口
+        loginDialog->show();
+
+
+    }
 }

@@ -17,6 +17,7 @@
 #include<QString>
 #include<QCoreApplication>
 #include<QDebug>
+#include<QInputDialog>
 
 
 
@@ -130,6 +131,8 @@ private slots:
     void clearbtnclicked();
 
     void paybtnclicked();
+
+    void backbtnclicked();
 
 
 private:

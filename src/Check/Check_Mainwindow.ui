@@ -67,13 +67,20 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QPushButton" name="backbtn">
+         <property name="text">
+          <string>返回</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
     <item>
      <widget class="QGroupBox" name="CartgroupBox">
       <property name="title">
-       <string> </string>
+       <string/>
       </property>
       <widget class="QWidget" name="cartWidget" native="true">
        <property name="geometry">
@@ -144,8 +151,6 @@
     </item>
    </layout>
    <zorder>productgroupBox</zorder>
-   <zorder>label</zorder>
-   <zorder>totalLabel</zorder>
    <zorder>CartgroupBox</zorder>
    <zorder>leftWidget</zorder>
   </widget>
