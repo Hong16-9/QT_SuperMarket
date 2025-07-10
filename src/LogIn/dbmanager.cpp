@@ -526,3 +526,29 @@ bool DBManager::updateProductPrice(int productId, double newPrice)
         params
     );
 }
+
+QList<QMap<QString, QVariant>> DBManager::getMonthlyProductSales()
+{
+    QDateTime now = QDateTime::currentDateTime();
+    QDateTime startOfMonth = QDateTime(now.date().addDays(1 - now.date().day()), QTime(0, 0, 0));
+    QDateTime endOfMonth = QDateTime(now.date().addDays(1 - now.date().day()).addMonths(1).addDays(-1), QTime(23, 59, 59));
+
+    QSqlQuery query = executeQuery(
+        "SELECT p.name, SUM(si.quantity) as total_sales "
+        "FROM sales s "
+        "JOIN sale_items si ON s.id = si.sale_id "
+        "JOIN products p ON si.product_id = p.id "
+        "WHERE s.sale_date BETWEEN ? AND ? "
+        "GROUP BY p.id",
+        {startOfMonth, endOfMonth}
+        );
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["name"] = query.value("name");
+        record["total_sales"] = query.value("total_sales");
+        results.append(record);
+    }
+    return results;
+}
