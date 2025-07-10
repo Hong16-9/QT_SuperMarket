@@ -43,8 +43,8 @@ public:
 
     // 会员管理
     bool addMember(const QString& phone, const QString& name,
-                  double discount = 1.0, const QString& gender = "",
-                  int age = -1, int points = 0);
+                   double discount = 1.0, const QString& birthday = "",
+                   int points = 0);
     bool updateMemberPoints(const QString& phone, int points);  // 更新会员积分
     double getMemberDiscount(const QString& phone);
     int getMemberPoints(const QString& phone); // 更新会员积分
