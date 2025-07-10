@@ -65,7 +65,7 @@
         </property>
         <property name="icon">
          <iconset resource="../../icon.qrc">
-          <normaloff>:/LogIn/icon/codeshow.jpg</normaloff>:/LogIn/icon/codeshow.jpg</iconset>
+          <normaloff>:/LogIn/icon/codeshow.png</normaloff>:/LogIn/icon/codeshow.png</iconset>
         </property>
         <property name="flat">
          <bool>true</bool>
