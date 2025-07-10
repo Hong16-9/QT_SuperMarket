@@ -32,6 +32,7 @@ private slots:
     void onExportDataClicked();       // 对应exportAction
     void onTakeProductClicked();
     void onBackToLoginTriggered();
+    void onViewSalesStatisticsClicked();
 
 signals:
     void backToLogin();

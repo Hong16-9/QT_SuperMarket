@@ -15,6 +15,7 @@ SOURCES += \
     src/Check/Check_Mainwindow.cpp \
     src/LogIn/LoginDialog.cpp \
     src/Product/AddProductDialog.cpp \
+    src/Product/SalesStatisticsDialog.cpp \
     src/Product/StockDialog.cpp \
     src/main.cpp \
     src/LogIn/dbmanager.cpp \
@@ -27,6 +28,7 @@ HEADERS += \
     include/LogIn/LoginDialog.h \
     include/LogIn/dbmanager.h \
     include/Product/AddProductDialog.h \
+    include/Product/SalesStatisticsDialog.h \
     include/Product/StockDialog.h \
     include/Product/Product.h \
     include/LogIn/registerdialog.h \
