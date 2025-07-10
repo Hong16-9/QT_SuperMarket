@@ -1,5 +1,4 @@
 #include "LogIn/LoginDialog.h"
-#include "LogIn/dbmanager.h"
 #include"LogIn/registerdialog.h"
 #include "Product/Product.h"
 
