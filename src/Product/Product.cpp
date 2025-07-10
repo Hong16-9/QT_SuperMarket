@@ -10,11 +10,13 @@
 #include <QTextStream>
 #include <QDebug>
 
+
 Product::Product(QString name,QWidget *parent) :
     name(name),
     QMainWindow(parent),
     ui(new Ui::Product),
     dbManager(&DBManager::instance())
+
 
 {
     ui->setupUi(this);  // 加载UI Designer设计的界面

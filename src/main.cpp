@@ -24,20 +24,20 @@ int main(int argc, char *argv[])
     // 连接登录成功信号
     QObject::connect(&loginDialog, &LoginDialog::switch_to_productManage,
                      [&](const QString &userName) {
-        if (productPage) {
-            productPage->deleteLater(); // 清理旧窗口
-        }
-        productPage = new Product(userName);
+                         if (productPage) {
+                             productPage->deleteLater(); // 清理旧窗口
+                         }
+                         productPage = new Product(userName);
 
-        // 将返回信号连接移到窗口创建后
-        QObject::connect(productPage, &Product::backToLogin, [&]() {
-            productPage->hide();
-            loginDialog.show();
-        });
+                         // 将返回信号连接移到窗口创建后
+                         QObject::connect(productPage, &Product::backToLogin, [&]() {
+                             productPage->hide();
+                             loginDialog.show();
+                         });
 
-        loginDialog.hide();
-        productPage->show();
-    });
+                         loginDialog.hide();
+                         productPage->show();
+                     });
 
 
     // 连接登录对话框的信号

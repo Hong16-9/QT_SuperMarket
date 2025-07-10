@@ -41,7 +41,6 @@ AddProductDialog::AddProductDialog(QWidget *parent) : QDialog(parent)
     // 商品分类
     categoryComboBox = new QComboBox(this);
     categoryComboBox->addItems({"食品", "饮料", "日用品", "文具", "电器"});
-    formLayout->addRow("商品分类:", categoryComboBox);
 
     // 添加自定义分类按钮
     QHBoxLayout *categoryLayout = new QHBoxLayout;
@@ -108,8 +107,8 @@ void AddProductDialog::addNewCategory()
     QString newCategory = QInputDialog::getText(this, "添加新分类", "请输入新分类名称:", QLineEdit::Normal, "", &ok);
 
     if (ok && !newCategory.isEmpty()) {
-        // 检查分类是否已存在
-        if (!categoryComboBox->findText(newCategory)) {
+        // 修正：检查分类是否已存在
+        if (categoryComboBox->findText(newCategory) == -1) {  // 关键修改：使用 == -1 判断不存在
             categoryComboBox->addItem(newCategory);
             categoryComboBox->setCurrentText(newCategory);
         } else {
