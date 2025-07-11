@@ -20,7 +20,8 @@ SOURCES += \
     src/main.cpp \
     src/LogIn/dbmanager.cpp \
     src/Product/Product.cpp \
-    src/LogIn/registerdialog.cpp
+    src/LogIn/registerdialog.cpp \
+    src/LogIn/memberregisterdialog.cpp
 
 HEADERS += \
     include/Check/Check_Mainwindow.h \
@@ -30,14 +31,15 @@ HEADERS += \
     include/Product/SalesStatisticsDialog.h \
     include/Product/StockDialog.h \
     include/Product/Product.h \
-    include/LogIn/registerdialog.h
+    include/LogIn/registerdialog.h \
+    include/LogIn/memberregisterdialog.h
 
 FORMS += \
     src/Check/Check_Mainwindow.ui \
     src/LogIn/LogInDialog.ui \
     src/Product/Product.ui \
     src/LogIn/registerdialog.ui \
-    src/Check/Check_Mainwindow.ui
+    src/LogIn/memberregisterdialog.ui
 
 
 # Default rules for deployment.

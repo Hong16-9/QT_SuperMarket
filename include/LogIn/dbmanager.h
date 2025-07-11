@@ -43,8 +43,8 @@ public:
 
     // 会员管理
     bool addMember(const QString& phone, const QString& name,
-                  double discount = 1.0, const QString& gender = "",
-                  int age = -1, int points = 0);
+                   double discount = 1.0, const QString& birthday = "",
+                   int points = 0);
     bool updateMemberPoints(const QString& phone, int points);  // 更新会员积分
     double getMemberDiscount(const QString& phone);
     int getMemberPoints(const QString& phone); // 更新会员积分
@@ -77,14 +77,21 @@ public:
     bool addSale(int cashierId, double total, double payment,
                  const QList<QVariantMap>& items,
                  const QString& memberPhone = "");
-    // 用户管理 - 新增注册功能
+
+    // 获取当月商品销量统计
+    QList<QMap<QString, QVariant>> getMonthlyProductSales();
+
+    // 用户管理
     bool registerUser(const QString& username, const QString& password, const QString& gender, const int& age, const QString& role = "cashier");
+    int getUserIdByName(const QString& username);
 
     // 新增管理员认证方法
     bool authenticateAdmin(const QString& adminUsername, const QString& adminPassword);
 
-    // 新增：获取当月商品销量
-    QList<QMap<QString, QVariant>> getMonthlyProductSales();
+
+    //重置月销量
+    void resetmonthlysale();
+
 private:
     // 事务执行
     bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());
