@@ -54,4 +54,4 @@ DISTFILES += \
     supermarket.pro.user
 
 RESOURCES += \
-    icon.qrc
+    Icon.qrc
