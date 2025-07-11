@@ -25,6 +25,7 @@ SOURCES += \
 
 HEADERS += \
     include/Check/Check_Mainwindow.h \
+    include/Check/TransactionManager.h \
     include/LogIn/LoginDialog.h \
     include/LogIn/dbmanager.h \
     include/Product/AddProductDialog.h \
@@ -53,4 +54,4 @@ DISTFILES += \
     supermarket.pro.user
 
 RESOURCES += \
-    icon.qrc
+    Icon.qrc

@@ -61,8 +61,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../icon.qrc">
-          <normaloff>:/LogIn/icon/codeshow.png</normaloff>:/LogIn/icon/codeshow.png</iconset>
+         <iconset resource="../../Icon.qrc">
+          <normaloff>:/LogIn/icon/LogIn/codeshow.png</normaloff>:/LogIn/icon/LogIn/codeshow.png</iconset>
         </property>
         <property name="flat">
          <bool>true</bool>
@@ -83,7 +83,7 @@
     </rect>
    </property>
    <property name="orientation">
-    <enum>Qt::Horizontal</enum>
+    <enum>Qt::Orientation::Horizontal</enum>
    </property>
   </widget>
   <widget class="QWidget" name="verticalLayoutWidget_2">
@@ -128,8 +128,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../icon.qrc">
-          <normaloff>:/LogIn/icon/codeshow.png</normaloff>:/LogIn/icon/codeshow.png</iconset>
+         <iconset resource="../../Icon.qrc">
+          <normaloff>:/LogIn/icon/LogIn/codeshow.png</normaloff>:/LogIn/icon/LogIn/codeshow.png</iconset>
         </property>
         <property name="flat">
          <bool>true</bool>
@@ -156,8 +156,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../icon.qrc">
-          <normaloff>:/LogIn/icon/codeshow.png</normaloff>:/LogIn/icon/codeshow.png</iconset>
+         <iconset resource="../../Icon.qrc">
+          <normaloff>:/LogIn/icon/LogIn/codeshow.png</normaloff>:/LogIn/icon/LogIn/codeshow.png</iconset>
         </property>
         <property name="flat">
          <bool>true</bool>
@@ -187,7 +187,7 @@
          </size>
         </property>
         <property name="currentText">
-         <string>其他</string>
+         <string>男</string>
         </property>
         <item>
          <property name="text">
@@ -244,7 +244,7 @@
     </rect>
    </property>
    <property name="orientation">
-    <enum>Qt::Horizontal</enum>
+    <enum>Qt::Orientation::Horizontal</enum>
    </property>
   </widget>
   <widget class="QWidget" name="horizontalLayoutWidget_3">
@@ -275,7 +275,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../icon.qrc"/>
+  <include location="../../Icon.qrc"/>
  </resources>
  <connections/>
 </ui>
