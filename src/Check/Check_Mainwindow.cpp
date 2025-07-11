@@ -62,6 +62,7 @@ void Check_Mainwindow::setupUI(){
     if (cartLayout) {
         // 若总价区域已在 .ui 设好水平布局，无需重复创建
         // 如需微调，可在这里 addWidget 或调整 stretch
+        ui->cartlistView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);   //设置购物车区域商品条目占满视图宽度
     }
 
 
