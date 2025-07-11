@@ -508,6 +508,33 @@ void Check_Mainwindow::paybtnclicked()
 //    } else {
 //        QMessageBox::information(this, "支付成功", message);
 //    }
+// //     准备销售明细
+//    QList<QVariantMap> saleItems;
+//    for (const auto &item : m_cartItems) {
+//        QVariantMap itemData;
+//        itemData["product_id"] = item.product().id();
+//        itemData["quantity"] = item.quantity();
+//        itemData["price"] = item.product().price();
+//        saleItems.append(itemData);
+//    }
+
+//    // 调用addSale方法
+//    if (DBManager::instance().addSale(cashierId, total, total, saleItems, memberPhone)) {
+//        // 显示支付信息
+//        QString message = QString("支付金额: %1元").arg(total, 0, 'f', 2);
+//        if (!memberPhone.isEmpty()) {
+//            message += QString("\n已更新会员积分: +%1分").arg(static_cast<int>(total));
+//        }
+
+//        QMessageBox::information(this, "支付成功", message);
+
+//        // 清空购物车
+//        m_cartItems.clear();
+//        updateCartview();
+//    } else {
+//        QMessageBox::critical(this, "错误", "支付处理失败，请重试");
+//    }
+
     QMessageBox::information(this, "支付成功","");
 >>>>>>> master
 
