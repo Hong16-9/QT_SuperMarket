@@ -57,6 +57,34 @@ void Product::initUI()
     categoryComboBox = ui->categoryComboBox;   // 组合框对象名保持categoryComboBox
     searchLineEdit->setPlaceholderText("输入商品名称搜索...");
     categoryComboBox->setMinimumWidth(120);
+
+    // ===== 状态栏设置（新增/修改部分）=====
+    // 1. 创建管理员标签
+    QLabel* adminLabel = new QLabel(QString("当前管理员：%1").arg(name), this);
+    // 设置标签边距，避免内容太紧凑
+    adminLabel->setMargin(5);
+
+    // 2. 创建日期标签
+    QLabel* dateLabel = new QLabel(this);
+    QDate currentDate = QDate::currentDate();
+
+    // 定义星期汉字映射表（1=周一，7=周日）
+    const QStringList weekDays = {"", "一", "二", "三", "四", "五", "六", "日"};
+    int weekNum = currentDate.dayOfWeek(); // 获取星期数值（1-7）
+    QString weekStr = weekDays[weekNum];   // 转换为汉字
+
+    // 格式化日期文本（包含汉字星期）
+    QString dateText = QString("当前日期：%1 星期%2")
+                           .arg(currentDate.toString("yyyy-MM-dd"))
+                           .arg(weekStr);
+    dateLabel->setText(dateText);
+    dateLabel->setMargin(5);
+
+    // 4. 将组件添加到状态栏
+    statusBar()->addWidget(adminLabel);    // 左侧显示管理员
+    statusBar()->addWidget(dateLabel);     // 右侧显示日期（addPermanentWidget更适合固定在右侧）
+
+    statusBar()->addPermanentWidget(dateLabel);
 }
 
 // 连接信号与槽（关联Action和控件事件）

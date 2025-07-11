@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/Product"/>
+    <qresource prefix="/LogIn">
+        <file>icon/LogIn/codeshow.png</file>
+    </qresource>
+</RCC>
