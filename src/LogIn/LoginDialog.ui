@@ -42,7 +42,16 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="usernameEdit"/>
+       <widget class="QLineEdit" name="usernameEdit">
+        <property name="font">
+         <font>
+          <family>Adobe 黑体 Std R</family>
+          <pointsize>9</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -84,6 +93,13 @@
      <width>411</width>
      <height>16</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Adobe Arabic</family>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
    </property>
    <property name="text">
     <string/>
