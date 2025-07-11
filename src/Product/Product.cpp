@@ -2,6 +2,7 @@
 #include "ui_Product.h"
 #include "Product/AddProductDialog.h"
 #include "Product/StockDialog.h"
+#include "Product/SalesStatisticsDialog.h"
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QHeaderView>
@@ -12,12 +13,10 @@
 
 
 Product::Product(QString name,QWidget *parent) :
-    name(name),
     QMainWindow(parent),
     ui(new Ui::Product),
-    dbManager(&DBManager::instance())
-
-
+    dbManager(&DBManager::instance()),
+    name(name)
 {
     ui->setupUi(this);  // 加载UI Designer设计的界面
     initUI();           // 关联UI控件
@@ -78,6 +77,8 @@ void Product::setupConnections()
 
     connect(ui->backToLogin, &QAction::triggered, this, &Product::onBackToLoginTriggered);
 
+    // 新增：连接查看销售统计的Action
+    connect(ui->Sale_Action, &QAction::triggered, this, &Product::onViewSalesStatisticsClicked);
 }
 
 // 加载商品数据
@@ -449,4 +450,11 @@ void Product::onBackToLoginTriggered()
 {
     emit backToLogin(); // 发送返回登录的信号
     this->close();      // 关闭商品管理窗口
+}
+
+
+void Product::onViewSalesStatisticsClicked()
+{
+    SalesStatisticsDialog dialog(this);
+    dialog.exec();
 }

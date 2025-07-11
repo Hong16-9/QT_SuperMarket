@@ -2,8 +2,9 @@
 #include "ui_Check_Mainwindow.h"
 #include "LogIn/LoginDialog.h"
 
-Check_Mainwindow::Check_Mainwindow(QWidget *parent)
+Check_Mainwindow::Check_Mainwindow(QString name,QWidget *parent)
     : QMainWindow(parent)
+    , name(name)
     , ui(new Ui::Check_Mainwindow)
 {
     if (!DBManager::instance().initialize()) {
@@ -405,11 +406,110 @@ void Check_Mainwindow::paybtnclicked()
         return;
     }
 
+<<<<<<< HEAD
     //计算购物车总金额
     double total = 0;
     for (const auto& item : m_cartItems) {
         total += item.getTotalPrice();
     }
+=======
+    // 计算总金额
+    double total = 0;
+    for (const auto &item : m_cartItems) {
+        total += item.getTotalPrice();
+    }
+
+
+//    // 会员信息初始化
+//    QString memberPhone = ui->memberPhoneEdit->text().trimmed(); // 假设有会员输入框
+//    double finalDiscount = 1.0; // 默认无折扣
+//    int pointsEarned = static_cast<int>(total); // 1元=1积分
+//    bool isBirthday = false; // 生日标志
+
+//    QString discountInfo = ""; // 折扣信息详情
+
+//    if (!memberPhone.isEmpty()) {
+//        // 获取会员信息
+//        auto member = DBManager::instance().getMemberByPhone(memberPhone);
+
+//        // 检查是否是生日
+//        QString birthdayStr = member["birthday"].toString();
+//        QDate birthday = QDate::fromString(birthdayStr, "yyyy-MM-dd");
+//        QDate today = QDate::currentDate();
+
+//        // 生日折扣（85折）
+//        if (birthday.month() == today.month() && birthday.day() == today.day()) {
+//            finalDiscount = 0.85; // 生日折扣
+//            isBirthday = true;
+//            discountInfo += "生日折扣: 85折\n";
+//        }
+
+//        // 如果不是生日，使用其他会员折扣
+//        if (!isBirthday) {
+//            // 获取当前折扣
+//            double baseDiscount = DBManager::instance().getMemberDiscount(memberPhone);
+
+//            // 获取当前积分
+//            int currentPoints = DBManager::instance().getMemberPoints(memberPhone);
+
+//            // 计算积分折扣
+//            double pointsDiscount = DBManager::instance().calculateDiscountByPoints(currentPoints);
+
+//            // 应用最优惠折扣
+//            finalDiscount = qMin(baseDiscount, pointsDiscount);
+
+//            // 记录折扣详情
+//            if (baseDiscount < 1.0) {
+//                discountInfo += QString("会员折扣: %1%\n").arg(baseDiscount * 100);
+//            }
+//            if (pointsDiscount < 1.0) {
+//                discountInfo += QString("积分折扣: %1%\n").arg(pointsDiscount * 100);
+//            }
+//        }
+
+//        // 更新会员积分（生日当天积分双倍）
+//        int pointsToAdd = isBirthday ? pointsEarned * 2 : pointsEarned;
+//        DBManager::instance().updateMemberPoints(memberPhone,
+//                                                 DBManager::instance().getMemberPoints(memberPhone) + pointsToAdd);
+//    }
+
+//    // 应用折扣
+//    double originalTotal = total;
+//    double finalTotal = total * finalDiscount;
+//    double savedAmount = originalTotal - finalTotal;
+
+//    // 构建支付信息
+//    QString message = QString("支付金额: %1元").arg(finalTotal, 0, 'f', 2);
+
+//    // 如果有折扣
+//    if (finalDiscount < 1.0) {
+//        message += QString("\n原价: %1元").arg(originalTotal, 0, 'f', 2);
+//        message += QString("\n节省: %1元").arg(savedAmount, 0, 'f', 2);
+
+//        // 添加折扣信息
+//        if (!discountInfo.isEmpty()) {
+//            message += "\n\n折扣详情:\n" + discountInfo;
+//        }
+//    }
+
+//    // 如果有会员
+//    if (!memberPhone.isEmpty()) {
+//        message += QString("\n获得积分: %1").arg(pointsEarned);
+
+//        // 如果是生日，显示额外积分
+//        if (isBirthday) {
+//            message += QString(" (生日双倍积分，实际获得: %1)").arg(pointsEarned * 2);
+//        }
+//    }
+
+//    // 显示支付信息
+//    if (isBirthday) {
+//        QMessageBox::information(this, "生日快乐！支付成功", message);
+//    } else {
+//        QMessageBox::information(this, "支付成功", message);
+//    }
+    QMessageBox::information(this, "支付成功","");
+>>>>>>> master
 
     //会员折扣处理
     bool hasmember=false;

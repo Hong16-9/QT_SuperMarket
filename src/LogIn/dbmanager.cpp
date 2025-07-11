@@ -48,6 +48,8 @@ bool DBManager::initialize(const QString& path)
     }
 
     qInfo() << "数据库初始化成功:" << path;
+
+
     return true;
 }
 
@@ -61,7 +63,9 @@ bool DBManager::createTables()
         "   id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "   username TEXT UNIQUE NOT NULL,"
         "   password TEXT NOT NULL,"
-        "   role TEXT CHECK(role IN ('admin', 'cashier')))"
+        "   role TEXT CHECK(role IN ('admin', 'cashier')),"
+        "   gender TEXT,"
+        "   age INTEGER)"
         );
 
     // 商品表
@@ -81,8 +85,10 @@ bool DBManager::createTables()
         "   id INTEGER PRIMARY KEY AUTOINCREMENT,"
         "   phone TEXT UNIQUE NOT NULL,"
         "   name TEXT,"
-        "   discount REAL DEFAULT 1.0 CHECK(discount BETWEEN 0.1 AND 1.0))"
-        );
+        "   discount REAL DEFAULT 1.0 CHECK(discount BETWEEN 0.1 AND 1.0),"
+        "   birthday TEXT,"  // 新增生日字段
+        "   points INTEGER DEFAULT 0)"
+    );
 
     // 销售记录表
     success &= executeTransaction(
@@ -110,7 +116,7 @@ bool DBManager::initDefaultData()
 {
     // 创建默认管理员账户
     if (!executeQuery("SELECT 1 FROM users WHERE username = 'admin'").next()) {
-        createUser("admin", "admin123", "admin");
+        createUser("admin", "admin123", "admin","",0);
         qInfo() << "创建默认管理员账户: admin/admin123";
     }
 
@@ -126,14 +132,14 @@ bool DBManager::initDefaultData()
     return true;
 }
 
-bool DBManager::createUser(const QString& username, const QString& password, const QString& role)
+bool DBManager::createUser(const QString& username, const QString& password, const QString& role, const QString& gender, const int& age)
 {
     QVariantList params;
-    params << username << encryptPassword(password) << role;
+    params << username << encryptPassword(password) << role <<gender<<age;
 
     return executeTransaction(
-        "INSERT INTO users (username, password, role) "
-        "VALUES (?, ?, ?)",
+        "INSERT INTO users (username, password, role, gender, age) "
+        "VALUES (?, ?, ?, ?, ?)",
         params
         );
 }
@@ -203,16 +209,55 @@ QList<QMap<QString, QVariant>> DBManager::searchProducts(const QString& keyword)
     return results;
 }
 
-bool DBManager::addMember(const QString& phone, const QString& name, double discount)
+bool DBManager::addMember(const QString& phone, const QString& name,
+                          double discount, const QString& birthday,
+                          int points)
 {
     QVariantList params;
-    params << phone << name << discount;
+    params << phone << name << discount << birthday << points;
 
     return executeTransaction(
-        "INSERT INTO members (phone, name, discount) "
-        "VALUES (?, ?, ?)",
+        "INSERT INTO members (phone, name, discount, birthday, points) "
+        "VALUES (?, ?, ?, ?, ?)",
         params
-        );
+    );
+}
+
+bool DBManager::updateMemberPoints(const QString& phone, int points)
+{
+    QVariantList params;
+    params << points << phone;
+
+    return executeTransaction(
+        "UPDATE members SET points = ? WHERE phone = ?",
+        params
+    );
+}
+
+int DBManager::getMemberPoints(const QString& phone)
+{
+    QSqlQuery query = executeQuery(
+        "SELECT points FROM members WHERE phone = ?",
+        {phone}
+    );
+
+    if (query.next()) {
+        return query.value(0).toInt();
+    }
+    return 0;
+}
+
+double DBManager::calculateDiscountByPoints(int points)
+{
+    // 积分折扣规则:
+    // 0-1000分: 无折扣
+    // 1001-5000分: 95折
+    // 5001-10000分: 9折
+    // 10001分以上: 85折
+    if (points > 10000) return 0.85;
+    if (points > 5000) return 0.9;
+    if (points > 1000) return 0.95;
+    return 1.0;
 }
 
 double DBManager::getMemberDiscount(const QString& phone)
@@ -362,9 +407,10 @@ QList<QMap<QString, QVariant>> DBManager::getProductsByCategory(const QString& c
 
 // ================= 会员查询实现 =================
 QList<QMap<QString, QVariant>> DBManager::getAllMembers() {
+
     QSqlQuery query = executeQuery(
-        "SELECT id, phone, name, discount FROM members"
-        );
+        "SELECT id, phone, name, discount, gender, age, points FROM members"
+    );
 
     QList<QMap<QString, QVariant>> results;
     while (query.next()) {
@@ -373,16 +419,20 @@ QList<QMap<QString, QVariant>> DBManager::getAllMembers() {
         record["phone"] = query.value("phone");
         record["name"] = query.value("name");
         record["discount"] = query.value("discount");
+        record["gender"] = query.value("gender");
+        record["age"] = query.value("age");
+        record["points"] = query.value("points");
         results.append(record);
     }
     return results;
 }
 
-QMap<QString, QVariant> DBManager::getMemberByPhone(const QString& phone) {
+QMap<QString, QVariant> DBManager::getMemberByPhone(const QString& phone)
+{
     QSqlQuery query = executeQuery(
-        "SELECT id, phone, name, discount FROM members WHERE phone = ?",
+        "SELECT id, phone, name, discount, birthday, points FROM members WHERE phone = ?",  // 添加birthday
         {phone}
-        );
+    );
 
     QMap<QString, QVariant> record;
     if (query.next()) {
@@ -390,18 +440,34 @@ QMap<QString, QVariant> DBManager::getMemberByPhone(const QString& phone) {
         record["phone"] = query.value("phone");
         record["name"] = query.value("name");
         record["discount"] = query.value("discount");
+        record["birthday"] = query.value("birthday");  // 新增
+        record["points"] = query.value("points");
     }
     return record;
 }
 
 QList<QMap<QString, QVariant>> DBManager::getMembersByName(const QString& name) {
     QSqlQuery query = executeQuery(
-        "SELECT id, phone, name, discount FROM members "
+        "SELECT id, phone, name, discount, birthday, points FROM members "
         "WHERE name LIKE ?",
         {"%" + name + "%"}
         );
 
     QList<QMap<QString, QVariant>> results;
+
+    // 遍历查询结果
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
+        record["phone"] = query.value("phone");
+        record["name"] = query.value("name");
+        record["discount"] = query.value("discount");
+        record["birthday"] = query.value("birthday");  // 添加生日字段
+        record["points"] = query.value("points");
+        results.append(record);
+    }
+
+    return results;  // 返回结果列表
 }
 
 bool DBManager::authenticateAdmin(const QString& adminUsername, const QString& adminPassword)
@@ -425,7 +491,7 @@ bool DBManager::authenticateAdmin(const QString& adminUsername, const QString& a
     return false;
 }
 
-bool DBManager::registerUser(const QString& username, const QString& password, const QString& role)
+bool DBManager::registerUser(const QString& username, const QString& password, const QString& gender, const int& age, const QString& role)
 {
     // 检查用户名是否已存在
     QSqlQuery checkQuery = executeQuery(
@@ -439,7 +505,7 @@ bool DBManager::registerUser(const QString& username, const QString& password, c
     }
 
     // 创建新用户
-    return createUser(username, password, role);
+    return createUser(username, password, role,gender,age);
 }
 
 bool DBManager::deleteProduct(int productId)
@@ -475,4 +541,30 @@ bool DBManager::updateProductPrice(int productId, double newPrice)
         "UPDATE products SET price = ? WHERE id = ?",
         params
     );
+}
+
+QList<QMap<QString, QVariant>> DBManager::getMonthlyProductSales()
+{
+    QDateTime now = QDateTime::currentDateTime();
+    QDateTime startOfMonth = QDateTime(now.date().addDays(1 - now.date().day()), QTime(0, 0, 0));
+    QDateTime endOfMonth = QDateTime(now.date().addDays(1 - now.date().day()).addMonths(1).addDays(-1), QTime(23, 59, 59));
+
+    QSqlQuery query = executeQuery(
+        "SELECT p.name, SUM(si.quantity) as total_sales "
+        "FROM sales s "
+        "JOIN sale_items si ON s.id = si.sale_id "
+        "JOIN products p ON si.product_id = p.id "
+        "WHERE s.sale_date BETWEEN ? AND ? "
+        "GROUP BY p.id",
+        {startOfMonth, endOfMonth}
+        );
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["name"] = query.value("name");
+        record["total_sales"] = query.value("total_sales");
+        results.append(record);
+    }
+    return results;
 }

@@ -31,7 +31,7 @@ public:
     bool initialize(const QString& path = "supermarket.db");
 
     // 用户管理
-    bool createUser(const QString& username, const QString& password, const QString& role);
+    bool createUser(const QString& username, const QString& password, const QString& role, const QString& gender, const int& age);
     QString authenticateUser(const QString& username, const QString& password);
 
     // 商品管理
@@ -42,8 +42,13 @@ public:
     QList<QMap<QString, QVariant>> searchProducts(const QString& keyword);  // 新增：按关键词搜索
 
     // 会员管理
-    bool addMember(const QString& phone, const QString& name, double discount = 1.0);
+    bool addMember(const QString& phone, const QString& name,
+                   double discount = 1.0, const QString& birthday = "",
+                   int points = 0);
+    bool updateMemberPoints(const QString& phone, int points);  // 更新会员积分
     double getMemberDiscount(const QString& phone);
+    int getMemberPoints(const QString& phone); // 更新会员积分
+    double calculateDiscountByPoints(int points);  // 根据积分获取折扣率
 
     // 数据库状态
     bool isOpen() const;
@@ -73,11 +78,13 @@ public:
                  const QList<QVariantMap>& items,
                  const QString& memberPhone = "");
     // 用户管理 - 新增注册功能
-    bool registerUser(const QString& username, const QString& password, const QString& role = "cashier");
+    bool registerUser(const QString& username, const QString& password, const QString& gender, const int& age, const QString& role = "cashier");
 
     // 新增管理员认证方法
     bool authenticateAdmin(const QString& adminUsername, const QString& adminPassword);
 
+    // 新增：获取当月商品销量
+    QList<QMap<QString, QVariant>> getMonthlyProductSales();
 private:
     // 事务执行
     bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());

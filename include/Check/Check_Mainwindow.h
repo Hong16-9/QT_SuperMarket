@@ -117,7 +117,7 @@ class Check_Mainwindow : public QMainWindow
     Q_OBJECT
 
 public:
-    Check_Mainwindow(QWidget *parent = nullptr);
+    Check_Mainwindow(QString name,QWidget *parent = nullptr);
     ~Check_Mainwindow();
 
 
@@ -151,6 +151,8 @@ private:
 
 
     std::vector<CartItem> m_cartItems;            //创建数据模型
+
+    QString name;  //新增，接受收银员名称
 };
 
 #endif // CHECK_MAINWINDOW_H

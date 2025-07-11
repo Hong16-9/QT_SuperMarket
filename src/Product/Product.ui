@@ -64,7 +64,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>18</height>
     </rect>
    </property>
   </widget>
@@ -83,6 +83,7 @@
    <addaction name="Delete_Product"/>
    <addaction name="Put_Product"/>
    <addaction name="Out_Product"/>
+   <addaction name="Sale_Action"/>
    <addaction name="importAction"/>
    <addaction name="exportAction"/>
    <addaction name="backToLogin"/>
@@ -92,7 +93,7 @@
     <string>添加商品</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="Delete_Product">
@@ -100,7 +101,7 @@
     <string>删除商品</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="Put_Product">
@@ -108,7 +109,7 @@
     <string>商品入库</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="importAction">
@@ -140,7 +141,15 @@
     <string>返回</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::NoRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="Sale_Action">
+   <property name="text">
+    <string>销售统计看板</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
  </widget>
