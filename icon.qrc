@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/LogIn">
-        <file>icon/codeshow.png</file>
+        <file>icon/LogIn/codeshow.png</file>
     </qresource>
     <qresource prefix="/Product"/>
 </RCC>

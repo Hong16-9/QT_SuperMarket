@@ -10,18 +10,20 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGridLayout>
 
-
-Product::Product(QString name,QWidget *parent) :
+Product::Product(QString name, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Product),
     dbManager(&DBManager::instance()),
     name(name)
 {
-    ui->setupUi(this);  // 加载UI Designer设计的界面
-    initUI();           // 关联UI控件
-    setupConnections(); // 连接信号与槽
-    loadProducts();     // 初始加载商品数据
+    ui->setupUi(this);
+    initUI();
+    setupConnections();
+    loadProducts();
     setWindowTitle(QString("商品管理 - 当前用户: %1").arg(name));
 }
 
@@ -30,63 +32,83 @@ Product::~Product()
     delete ui;
 }
 
-// 初始化UI：关联UI Designer中的控件
 void Product::initUI()
 {
     setWindowTitle("商品管理");
-    setMinimumSize(1024, 600);
+
+    // 创建中央部件和主布局
+    QWidget *centralWidget = new QWidget(this);
+    setCentralWidget(centralWidget);
+
+    // 主垂直布局
+    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+    mainLayout->setContentsMargins(10, 10, 10, 10);
+    mainLayout->setSpacing(10);
+
+    // 搜索区域布局
+    QHBoxLayout *searchLayout = new QHBoxLayout();
+    searchLayout->setSpacing(5);
+
+    // 关联UI控件
+    searchLineEdit = ui->searchLineEdit;
+    categoryComboBox = ui->categoryComboBox;
+
+    // 设置搜索框和下拉框的最小宽度
+    searchLineEdit->setMinimumWidth(200);
+    categoryComboBox->setMinimumWidth(120);
+
+    // 添加搜索区域控件到布局
+    searchLayout->addWidget(new QLabel("分类:", this));
+    searchLayout->addWidget(categoryComboBox);
+    searchLayout->addWidget(new QLabel("搜索:", this));
+    searchLayout->addWidget(searchLineEdit);
+    searchLayout->addWidget(ui->Search_Product);
+    searchLayout->addStretch(); // 让搜索区域控件靠左排列，右侧填充空白
 
     // 初始化表格模型
     productModel = new QStandardItemModel(0, 6, this);
     productModel->setHorizontalHeaderLabels({"ID", "商品名称", "条码", "价格", "库存", "分类"});
 
-    // 关联表格视图（UI中表格对象名为productTableView）
+    // 表格视图设置
     ui->productTableView->setModel(productModel);
     ui->productTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->productTableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     ui->productTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->productTableView->setSortingEnabled(true);
+
+    // 关键表格布局设置
     ui->productTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->productTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     ui->productTableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     ui->productTableView->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     ui->productTableView->setAlternatingRowColors(true);
 
-    // 关联外部的文本框和组合框（UI中对应对象名）
-    searchLineEdit = ui->searchLineEdit;       // 文本框对象名保持searchLineEdit
-    categoryComboBox = ui->categoryComboBox;   // 组合框对象名保持categoryComboBox
-    searchLineEdit->setPlaceholderText("输入商品名称搜索...");
-    categoryComboBox->setMinimumWidth(120);
+    // 设置表格的拉伸策略
+    ui->productTableView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    // ===== 状态栏设置（新增/修改部分）=====
-    // 1. 创建管理员标签
+    // 将搜索区域和表格添加到主布局
+    mainLayout->addLayout(searchLayout);
+    mainLayout->addWidget(ui->productTableView, 1); // 表格占据主要空间
+
+    // 状态栏设置
     QLabel* adminLabel = new QLabel(QString("当前管理员：%1").arg(name), this);
-    // 设置标签边距，避免内容太紧凑
     adminLabel->setMargin(5);
 
-    // 2. 创建日期标签
     QLabel* dateLabel = new QLabel(this);
     QDate currentDate = QDate::currentDate();
-
-    // 定义星期汉字映射表（1=周一，7=周日）
     const QStringList weekDays = {"", "一", "二", "三", "四", "五", "六", "日"};
-    int weekNum = currentDate.dayOfWeek(); // 获取星期数值（1-7）
-    QString weekStr = weekDays[weekNum];   // 转换为汉字
+    int weekNum = currentDate.dayOfWeek();
+    QString weekStr = weekDays[weekNum];
 
-    // 格式化日期文本（包含汉字星期）
     QString dateText = QString("当前日期：%1 星期%2")
                            .arg(currentDate.toString("yyyy-MM-dd"))
                            .arg(weekStr);
     dateLabel->setText(dateText);
     dateLabel->setMargin(5);
 
-    // 4. 将组件添加到状态栏
-    statusBar()->addWidget(adminLabel);    // 左侧显示管理员
-    statusBar()->addWidget(dateLabel);     // 右侧显示日期（addPermanentWidget更适合固定在右侧）
-
+    statusBar()->addWidget(adminLabel);
     statusBar()->addPermanentWidget(dateLabel);
 }
-
 // 连接信号与槽（关联Action和控件事件）
 void Product::setupConnections()
 {
