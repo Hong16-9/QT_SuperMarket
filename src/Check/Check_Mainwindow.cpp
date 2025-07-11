@@ -400,19 +400,13 @@ void Check_Mainwindow::clearbtnclicked()
 //支付键
 void Check_Mainwindow::paybtnclicked()
 {
-   /* //检查购物车是否为空
+    //检查购物车是否为空
     if (m_cartItems.empty()) {
         QMessageBox::information(this, "提示", "购物车为空，无需支付");
         return;
     }
 
-<<<<<<< HEAD
-    //计算购物车总金额
-    double total = 0;
-    for (const auto& item : m_cartItems) {
-        total += item.getTotalPrice();
-    }
-=======
+
     // 计算总金额
     double total = 0;
     for (const auto &item : m_cartItems) {
@@ -420,103 +414,12 @@ void Check_Mainwindow::paybtnclicked()
     }
 
 
-//    // 会员信息初始化
-//    QString memberPhone = ui->memberPhoneEdit->text().trimmed(); // 假设有会员输入框
-//    double finalDiscount = 1.0; // 默认无折扣
-//    int pointsEarned = static_cast<int>(total); // 1元=1积分
-//    bool isBirthday = false; // 生日标志
-
-//    QString discountInfo = ""; // 折扣信息详情
-
-//    if (!memberPhone.isEmpty()) {
-//        // 获取会员信息
-//        auto member = DBManager::instance().getMemberByPhone(memberPhone);
-
-//        // 检查是否是生日
-//        QString birthdayStr = member["birthday"].toString();
-//        QDate birthday = QDate::fromString(birthdayStr, "yyyy-MM-dd");
-//        QDate today = QDate::currentDate();
-
-//        // 生日折扣（85折）
-//        if (birthday.month() == today.month() && birthday.day() == today.day()) {
-//            finalDiscount = 0.85; // 生日折扣
-//            isBirthday = true;
-//            discountInfo += "生日折扣: 85折\n";
-//        }
-
-//        // 如果不是生日，使用其他会员折扣
-//        if (!isBirthday) {
-//            // 获取当前折扣
-//            double baseDiscount = DBManager::instance().getMemberDiscount(memberPhone);
-
-//            // 获取当前积分
-//            int currentPoints = DBManager::instance().getMemberPoints(memberPhone);
-
-//            // 计算积分折扣
-//            double pointsDiscount = DBManager::instance().calculateDiscountByPoints(currentPoints);
-
-//            // 应用最优惠折扣
-//            finalDiscount = qMin(baseDiscount, pointsDiscount);
-
-//            // 记录折扣详情
-//            if (baseDiscount < 1.0) {
-//                discountInfo += QString("会员折扣: %1%\n").arg(baseDiscount * 100);
-//            }
-//            if (pointsDiscount < 1.0) {
-//                discountInfo += QString("积分折扣: %1%\n").arg(pointsDiscount * 100);
-//            }
-//        }
-
-//        // 更新会员积分（生日当天积分双倍）
-//        int pointsToAdd = isBirthday ? pointsEarned * 2 : pointsEarned;
-//        DBManager::instance().updateMemberPoints(memberPhone,
-//                                                 DBManager::instance().getMemberPoints(memberPhone) + pointsToAdd);
-//    }
-
-//    // 应用折扣
-//    double originalTotal = total;
-//    double finalTotal = total * finalDiscount;
-//    double savedAmount = originalTotal - finalTotal;
-
-//    // 构建支付信息
-//    QString message = QString("支付金额: %1元").arg(finalTotal, 0, 'f', 2);
-
-//    // 如果有折扣
-//    if (finalDiscount < 1.0) {
-//        message += QString("\n原价: %1元").arg(originalTotal, 0, 'f', 2);
-//        message += QString("\n节省: %1元").arg(savedAmount, 0, 'f', 2);
-
-//        // 添加折扣信息
-//        if (!discountInfo.isEmpty()) {
-//            message += "\n\n折扣详情:\n" + discountInfo;
-//        }
-//    }
-
-//    // 如果有会员
-//    if (!memberPhone.isEmpty()) {
-//        message += QString("\n获得积分: %1").arg(pointsEarned);
-
-//        // 如果是生日，显示额外积分
-//        if (isBirthday) {
-//            message += QString(" (生日双倍积分，实际获得: %1)").arg(pointsEarned * 2);
-//        }
-//    }
-
-//    // 显示支付信息
-//    if (isBirthday) {
-//        QMessageBox::information(this, "生日快乐！支付成功", message);
-//    } else {
-//        QMessageBox::information(this, "支付成功", message);
-//    }
-    QMessageBox::information(this, "支付成功","");
->>>>>>> master
-
-    //会员折扣处理
-    bool hasmember=false;
-    double discount = 1.0; //默认无折扣
+    // 会员信息初始化
     QString memberPhone;
-
-
+    double discount = 1.0; // 默认无折扣
+    int pointsEarned = static_cast<int>(total); // 1元=1积分
+    bool isBirthday = false; //生日标志
+    bool hasmember = false;  //会员标志
 
     //弹出对话框询问用户是否有会员
     QMessageBox::StandardButton reply = QMessageBox::question(
@@ -525,56 +428,68 @@ void Check_Mainwindow::paybtnclicked()
         );
 
     if (reply == QMessageBox::Yes) {
-        //获取会员手机号
+
         bool ok;
         memberPhone = QInputDialog::getText(                 //储存用户输入的手机号
             this, "会员", "请输入会员手机号:",
             QLineEdit::Normal, "", &ok
             );
+        if (ok && !memberPhone.isEmpty()) {                  //点击ok且输入的手机号不是空的
+            DBManager& db = DBManager::instance();
+            auto member = db.getMemberByPhone(memberPhone);  //从数据库查询手机号信息（以判断是否是会员）
 
-        if (ok && !memberPhone.isEmpty()) {                  //确保用户点击了确认并且手机号不为空
-            DBManager& db =DBManager::instance();
-            discount=db.getMemberDiscount(memberPhone);     //调用DBManager获取会员折扣率
+            //若会员存在则进行折扣计算
+            if (!member.empty()) {
+                hasmember = true;      //标记为有效会员
 
-            if (discount < 1.0) { // 折扣有效（小于1.0表示有折扣）
-                hasmember=true;
-                QMessageBox::information(this, "会员信息",
-                                         QString("会员 %1\n折扣率: %.1f折").arg(memberPhone).arg(discount * 10));
-            } else {
-                QMessageBox::warning(this, "会员信息",
-                                     "该手机号不是会员或折扣无效，将按原价支付");
-                discount = 1.0;            //重置为无折扣
+                // 生日判断（对比会员生日与当天的日期）
+                QString birthdayStr = member["birthday"].toString();
+                QDate birthday = QDate::fromString(birthdayStr, "yyyy-MM-dd");
+                QDate today = QDate::currentDate();
+                isBirthday = (birthday.month() == today.month() && birthday.day() == today.day());
+
+                // 折扣计算：生日优先，再取会员折扣与积分折扣的最小值
+                if (isBirthday) {
+                    discount = 0.85; // 生日专属折扣
+                } else {
+                    double baseDiscount = db.getMemberDiscount(memberPhone);     //会员等级对应的基础折扣
+                    int currentPoints = db.getMemberPoints(memberPhone);         //会员当前的积分
+                    double pointsDiscount = db.calculateDiscountByPoints(currentPoints);      //积分对应的折扣
+                    discount = qMin(baseDiscount, pointsDiscount);               //取基础折扣和积分折扣中的最优折扣
+                }
+
+                // 积分更新（生日双倍）
+                int pointsToAdd = isBirthday ? pointsEarned * 2 : pointsEarned;                       //计算新积分
+                db.updateMemberPoints(memberPhone, db.getMemberPoints(memberPhone) + pointsToAdd);    //累加积分到数据库
+
+            }
+
+            //若会员不存在则提示原价支付
+            else {
+                QMessageBox::warning(this, "提示", "该手机号不是会员，将按原价支付");
             }
         }
     }
 
-    double discountedTotal=total*discount;       //计算折扣后金额
+    //计算折扣后最终金额
+    double finalTotal = total * discount;            //计算应付金额
+    double originalTotal = total;                    //保存原价（用于展示节省金额）
+    double savedAmount = originalTotal - finalTotal; // 计算节省的金额
 
-
-    //弹出对话框让用户输入支付金额
+    //让用户输入实付金额
     bool ok;
     double payment = QInputDialog::getDouble(
-        this,
-        "支付",
-        QString("应付金额: %.2f元\n请输入实付金额:").arg(discountedTotal),
-        discountedTotal, // 默认值为应付金额
-        0,               // 最小值
-        1000000,         // 最大值
-        2,               // 小数位数
-        &ok
+        this, "支付",
+        QString("应付金额: %.2f元\n请输入实付金额:").arg(finalTotal),        //显示应付金额
+        finalTotal, 0, 1000000, 2, &ok                                   //默认值为应付金额，精度保留2位小数
         );
 
-    if (!ok||payment<discountedTotal) {                              //点击取消或者点击ok但是实付金额不够都会警告
-        if(ok) QMessageBox::warning(this, "支付失败", "实付金额不足");
+    //验证实付金额（取消输入或金额不足则支付失败）
+    if (!ok || payment < finalTotal) {
+        QMessageBox::warning(this, "支付失败", "实付金额不足或取消支付");
         return;
     }
-
-    double change = payment - discountedTotal;           //计算找零
-
-
-
-
-
+    double change = payment - finalTotal;    //计算找零
 
 
     //数据库事务处理
@@ -617,7 +532,7 @@ void Check_Mainwindow::paybtnclicked()
         }
 
         //调用DBManager的addSale接口添加销售记录和明细
-        if (!db.addSale(cashierId1, total * discount, payment=total, saleItems, memberPhone)) {
+        if (!db.addSale(cashierId, total * discount, payment=total, saleItems, memberPhone)) {
             success = false;
             qCritical() << "添加销售记录失败";
         }
@@ -660,7 +575,7 @@ void Check_Mainwindow::paybtnclicked()
         sqlDb.rollback();
         QMessageBox::critical(this, "支付失败", "库存不足或数据库错误");
     }
-*/
+
 }
 
 
