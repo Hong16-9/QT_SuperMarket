@@ -6,6 +6,7 @@
 
 #include <QApplication>
 #include <QMessageBox>
+#include <QTimer>
 
 int main(int argc, char *argv[])
 {
@@ -73,6 +74,21 @@ int main(int argc, char *argv[])
         registerDialog.hide();
         loginDialog.show();
     });
+
+
+
+    // 创建月销量重置定时器
+    QTimer *monthlyResetTimer = new QTimer(&a);
+    QObject::connect(monthlyResetTimer, &QTimer::timeout, []() {
+        QDate currentDate = QDate::currentDate();
+        if (currentDate.day() == 1) { // 每月1号重置
+            DBManager::instance().resetmonthlysale();
+        }
+    });
+
+    // 每天检查一次
+    monthlyResetTimer->start(24 * 60 * 60 * 1000);
+
 
     // 显示登录对话框
     loginDialog.show();

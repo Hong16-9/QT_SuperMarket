@@ -76,7 +76,8 @@ bool DBManager::createTables()
         "   barcode TEXT UNIQUE,"
         "   price REAL NOT NULL CHECK(price >= 0),"
         "   stock INTEGER DEFAULT 0 CHECK(stock >= 0),"
-        "   category TEXT)"
+        "   category TEXT,"
+        "   monthly_sales INTEGER DEFAULT 0 CHECK(monthly_sales >= 0))"  // 新增月销量字段
         );
 
     // 会员表
@@ -97,6 +98,7 @@ bool DBManager::createTables()
         "   cashier_id INTEGER NOT NULL REFERENCES users(id),"
         "   total REAL NOT NULL CHECK(total >= 0),"
         "   payment REAL NOT NULL CHECK(payment >= 0),"
+        "   member_phone TEXT REFERENCES members(phone),"  // 新增会员字段
         "   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)"
         );
 
@@ -328,7 +330,7 @@ QString DBManager::encryptPassword(const QString& password)
 // ================= 商品查询实现 =================
 QList<QMap<QString, QVariant>> DBManager::getAllProducts() {
     QSqlQuery query = executeQuery(
-        "SELECT id, name, barcode, price, stock, category FROM products"
+        "SELECT id, name, barcode, price, stock, category, monthly_sales FROM products"
         );
 
     QList<QMap<QString, QVariant>> results;
@@ -340,6 +342,7 @@ QList<QMap<QString, QVariant>> DBManager::getAllProducts() {
         record["price"] = query.value("price");
         record["stock"] = query.value("stock");
         record["category"] = query.value("category");
+        record["monthly_sales"] = query.value("monthly_sales");  // 新增
         results.append(record);
     }
     return results;
@@ -347,7 +350,7 @@ QList<QMap<QString, QVariant>> DBManager::getAllProducts() {
 
 QMap<QString, QVariant> DBManager::getProductById(int productId) {
     QSqlQuery query = executeQuery(
-        "SELECT id, name, barcode, price, stock, category FROM products WHERE id = ?",
+        "SELECT id, name, barcode, price, stock, category, monthly_sales FROM products WHERE id = ?",
         {productId}
         );
 
@@ -359,13 +362,14 @@ QMap<QString, QVariant> DBManager::getProductById(int productId) {
         record["price"] = query.value("price");
         record["stock"] = query.value("stock");
         record["category"] = query.value("category");
+        record["monthly_sales"] = query.value("monthly_sales");  // 新增
     }
     return record;
 }
 
 QList<QMap<QString, QVariant>> DBManager::getProductsByName(const QString& name) {
     QSqlQuery query = executeQuery(
-        "SELECT id, name, barcode, price, stock, category FROM products "
+        "SELECT id, name, barcode, price, stock, category, monthly_sales FROM products "
         "WHERE name LIKE ?",
         {"%" + name + "%"}
         );
@@ -379,6 +383,7 @@ QList<QMap<QString, QVariant>> DBManager::getProductsByName(const QString& name)
         record["price"] = query.value("price");
         record["stock"] = query.value("stock");
         record["category"] = query.value("category");
+        record["monthly_sales"] = query.value("monthly_sales");  // 新增
         results.append(record);
     }
     return results;
@@ -386,7 +391,7 @@ QList<QMap<QString, QVariant>> DBManager::getProductsByName(const QString& name)
 
 QList<QMap<QString, QVariant>> DBManager::getProductsByCategory(const QString& category) {
     QSqlQuery query = executeQuery(
-        "SELECT id, name, barcode, price, stock, category FROM products "
+        "SELECT id, name, barcode, price, stock, category, monthly_sales FROM products "
         "WHERE category = ?",
         {category}
         );
@@ -400,6 +405,7 @@ QList<QMap<QString, QVariant>> DBManager::getProductsByCategory(const QString& c
         record["price"] = query.value("price");
         record["stock"] = query.value("stock");
         record["category"] = query.value("category");
+        record["monthly_sales"] = query.value("monthly_sales");  // 新增
         results.append(record);
     }
     return results;
@@ -545,26 +551,159 @@ bool DBManager::updateProductPrice(int productId, double newPrice)
 
 QList<QMap<QString, QVariant>> DBManager::getMonthlyProductSales()
 {
-    QDateTime now = QDateTime::currentDateTime();
-    QDateTime startOfMonth = QDateTime(now.date().addDays(1 - now.date().day()), QTime(0, 0, 0));
-    QDateTime endOfMonth = QDateTime(now.date().addDays(1 - now.date().day()).addMonths(1).addDays(-1), QTime(23, 59, 59));
+    // 获取当前年月
+    QDate currentDate = QDate::currentDate();
+    int year = currentDate.year();
+    int month = currentDate.month();
 
-    QSqlQuery query = executeQuery(
-        "SELECT p.name, SUM(si.quantity) as total_sales "
-        "FROM sales s "
-        "JOIN sale_items si ON s.id = si.sale_id "
-        "JOIN products p ON si.product_id = p.id "
-        "WHERE s.sale_date BETWEEN ? AND ? "
-        "GROUP BY p.id",
-        {startOfMonth, endOfMonth}
-        );
+    // 查询当月销量数据
+    QString sql =
+        "SELECT p.id, p.name, SUM(si.quantity) AS total_sales "
+        "FROM products p "
+        "LEFT JOIN sale_items si ON si.product_id = p.id "
+        "LEFT JOIN sales s ON s.id = si.sale_id "
+        "WHERE strftime('%Y', s.timestamp) = ? "
+        "  AND strftime('%m', s.timestamp) = ? "
+        "GROUP BY p.id, p.name "
+        "ORDER BY total_sales DESC";
+
+    QVariantList params;
+    params << QString::number(year) << QString::number(month).rightJustified(2, '0');
+
+    QSqlQuery query = executeQuery(sql, params);
 
     QList<QMap<QString, QVariant>> results;
     while (query.next()) {
         QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
         record["name"] = query.value("name");
         record["total_sales"] = query.value("total_sales");
         results.append(record);
     }
+
+    // 如果没有销售记录，显示所有商品（销量为0）
+    if (results.isEmpty()) {
+        QSqlQuery allProducts = executeQuery(
+            "SELECT id, name, 0 AS total_sales FROM products"
+        );
+
+        while (allProducts.next()) {
+            QMap<QString, QVariant> record;
+            record["id"] = allProducts.value("id");
+            record["name"] = allProducts.value("name");
+            record["total_sales"] = 0;
+            results.append(record);
+        }
+    }
+
     return results;
+}
+//=====================添加销售记录与细明===========================
+bool DBManager::addSale(int cashierId, double total, double payment,
+                        const QList<QVariantMap>& items,
+                        const QString& memberPhone)
+{
+    // 开启事务
+    m_database.transaction();
+
+    try {
+        // 1. 添加销售记录
+        QSqlQuery saleQuery;
+        saleQuery.prepare(
+            "INSERT INTO sales (cashier_id, total, payment, member_phone) "
+            "VALUES (?, ?, ?, ?)"
+        );
+        saleQuery.addBindValue(cashierId);
+        saleQuery.addBindValue(total);
+        saleQuery.addBindValue(payment);
+        saleQuery.addBindValue(memberPhone.isEmpty() ? QVariant() : memberPhone);
+
+        if (!saleQuery.exec()) {
+            throw std::runtime_error("添加销售记录失败: " + saleQuery.lastError().text().toStdString());
+        }
+
+        // 获取新插入的销售记录ID
+        int saleId = saleQuery.lastInsertId().toInt();
+        if (saleId <= 0) {
+            throw std::runtime_error("获取销售ID失败");
+        }
+
+        // 2. 添加销售明细
+        for (const auto& item : items) {
+            int productId = item["product_id"].toInt();
+            int quantity = item["quantity"].toInt();
+            double price = item["price"].toDouble();
+
+            QSqlQuery itemQuery;
+            itemQuery.prepare(
+                "INSERT INTO sale_items (sale_id, product_id, quantity, price) "
+                "VALUES (?, ?, ?, ?)"
+            );
+            itemQuery.addBindValue(saleId);
+            itemQuery.addBindValue(productId);
+            itemQuery.addBindValue(quantity);
+            itemQuery.addBindValue(price);
+
+            if (!itemQuery.exec()) {
+                throw std::runtime_error("添加销售明细失败: " + itemQuery.lastError().text().toStdString());
+            }
+
+            // 3. 更新商品月销量
+            QSqlQuery updateSalesQuery;
+            updateSalesQuery.prepare(
+                "UPDATE products SET monthly_sales = monthly_sales + ? WHERE id = ?"
+            );
+            updateSalesQuery.addBindValue(quantity);
+            updateSalesQuery.addBindValue(productId);
+
+            if (!updateSalesQuery.exec()) {
+                throw std::runtime_error("更新商品月销量失败: " + updateSalesQuery.lastError().text().toStdString());
+            }
+        }
+
+        // 4. 更新会员积分（如果有会员）
+        if (!memberPhone.isEmpty()) {
+            int pointsEarned = static_cast<int>(total); // 1元=1积分
+
+            QSqlQuery pointsQuery;
+            pointsQuery.prepare(
+                "UPDATE members SET points = points + ? WHERE phone = ?"
+            );
+            pointsQuery.addBindValue(pointsEarned);
+            pointsQuery.addBindValue(memberPhone);
+
+            if (!pointsQuery.exec()) {
+                throw std::runtime_error("更新会员积分失败: " + pointsQuery.lastError().text().toStdString());
+            }
+        }
+
+        // 提交事务
+        m_database.commit();
+        return true;
+    } catch (const std::exception& e) {
+        // 回滚事务
+        m_database.rollback();
+        qCritical() << "销售记录添加失败:" << e.what();
+        return false;
+    }
+}
+
+int DBManager::getUserIdByName(const QString& username)
+{
+    QSqlQuery query = executeQuery(
+        "SELECT id FROM users WHERE username = ?",
+        {username}
+    );
+
+    if (query.next()) {
+        return query.value(0).toInt();
+    }
+    return -1; // 未找到用户
+}
+
+void DBManager::resetmonthlysale(){
+    DBManager::instance().executeTransaction(
+        "UPDATE products SET monthly_sales = 0"
+    );
+    qInfo() << "Monthly sales data has been reset";
 }
