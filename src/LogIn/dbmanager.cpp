@@ -78,6 +78,7 @@ bool DBManager::createTables()
         "   stock INTEGER DEFAULT 0 CHECK(stock >= 0),"
         "   category TEXT,"
         "   monthly_sales INTEGER DEFAULT 0 CHECK(monthly_sales >= 0))"  // 新增月销量字段
+
         );
 
     // 会员表
@@ -344,6 +345,11 @@ QList<QMap<QString, QVariant>> DBManager::getAllProducts() {
         record["category"] = query.value("category");
         record["monthly_sales"] = query.value("monthly_sales");  // 新增
         results.append(record);
+    }
+    if (query.lastError().isValid()) {
+        qCritical() << "查询错误：" << query.lastError().text();
+    } else {
+        qDebug() << "查询成功，返回记录数：" << results.size();
     }
     return results;
 }

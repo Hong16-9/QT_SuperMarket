@@ -1,31 +1,57 @@
-#include <QApplication>
-<<<<<<< HEAD
+#include "LogIn/LoginDialog.h"
+#include "LogIn/dbmanager.h"
+#include "LogIn/registerdialog.h"
+#include "Product/Product.h"
 #include "Check/Check_Mainwindow.h"
-#include <QDebug>
-=======
+
+#include <QApplication>
 #include <QMessageBox>
 #include <QTimer>
->>>>>>> e0b06f548074cbd0aa3868300a6aa55c0e8b8873
 
 int main(int argc, char *argv[])
 {
-    // 确保中文显示正常
-    QApplication::setApplicationName("超市收银系统");
-    QApplication::setOrganizationName("YourCompany");
-
-    // 初始化Qt应用
     QApplication a(argc, argv);
+    // 初始化数据库
+    if (!DBManager::instance().initialize()) {
+        QMessageBox::critical(nullptr, "错误", "数据库初始化失败！");
+        return -1;
+    }
 
-    // 创建并显示主窗口
-    Check_Mainwindow w("admin",nullptr);
+    // 创建登录和注册对话框
+    LoginDialog loginDialog;
+    RegisterDialog registerDialog;
+
+    // 创建商品管理页
+    Product *productPage=nullptr;
+
+    //创建收银界面
+    Check_Mainwindow *checkwindow=nullptr;
+
+    // 连接登录成功信号
+    QObject::connect(&loginDialog, &LoginDialog::switch_to_productManage,
+                     [&](const QString &userName) {
+                         if (productPage) {
+                             productPage->deleteLater(); // 清理旧窗口
+                         }
+                         productPage = new Product(userName);
+
+                         // 将返回信号连接移到窗口创建后
+                         QObject::connect(productPage, &Product::backToLogin, [&]() {
+                             productPage->hide();
+                             loginDialog.show();
+                         });
+
+                         loginDialog.hide();
+                         productPage->show();
+                     });
 
 
-    // 显示主窗口
-    w.show();
+    // 连接登录对话框的信号
+    QObject::connect(&loginDialog, &LoginDialog::switch_to_register, [&]() {
+        loginDialog.hide();
+        registerDialog.show();
+    });
 
-<<<<<<< HEAD
-    // 进入应用主循环
-=======
     QObject::connect(&loginDialog, &LoginDialog::switch_to_cashier, [&](QString username) {
         // 这里可以打开收银界面
         qDebug() << "收银员登录成功:" << username;
@@ -66,6 +92,5 @@ int main(int argc, char *argv[])
 
     // 显示登录对话框
     loginDialog.show();
->>>>>>> e0b06f548074cbd0aa3868300a6aa55c0e8b8873
     return a.exec();
 }
