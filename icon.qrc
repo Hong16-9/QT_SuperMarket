@@ -3,6 +3,7 @@
         <file>icon/LogIn/codeshow.png</file>
         <file>icon/LogIn/shide.png</file>
         <file>icon/LogIn/sshow.png</file>
+        <file>icon/LogIn/history.png</file>
     </qresource>
     <qresource prefix="/Product"/>
     <qresource prefix="/">

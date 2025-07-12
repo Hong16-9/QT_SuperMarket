@@ -70,8 +70,7 @@ public:
     QList<QMap<QString, QVariant>> getMembersByName(const QString& name);
 
     // 销售记录查询
-    QList<QMap<QString, QVariant>> getSalesByDateRange(const QDateTime& start, const QDateTime& end);
-    QList<QMap<QString, QVariant>> getSaleItemsBySaleId(int saleId);
+    QList<QMap<QString, QVariant>> getSalesHistory(int cashierId, const QDateTime& start = QDateTime(), const QDateTime& end = QDateTime());
 
     // 添加销售记录和销售明细
     bool addSale(int cashierId, double total, double payment,

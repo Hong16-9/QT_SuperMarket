@@ -714,13 +714,35 @@ void DBManager::resetmonthlysale(){
     qInfo() << "Monthly sales data has been reset";
 }
 
-bool DBManager::isBarcodeExists(const QString& barcode)
-{
-    QSqlQuery query(m_database);
-    query.prepare("SELECT COUNT(*) FROM products WHERE barcode = ?");
-    query.addBindValue(barcode);
-    if (query.exec() && query.next()) {
-        return query.value(0).toInt() > 0;
+QList<QMap<QString, QVariant>> DBManager::getSalesHistory(int cashierId, const QDateTime& start, const QDateTime& end) {
+    QString sql = "SELECT s.id, s.timestamp, s.total, s.payment, s.member_phone, "
+                  "GROUP_CONCAT(p.name || '×' || si.quantity, ', ') AS items "
+                  "FROM sales s "
+                  "JOIN sale_items si ON s.id = si.sale_id "
+                  "JOIN products p ON si.product_id = p.id "
+                  "WHERE s.cashier_id = ? ";
+
+    QVariantList params = {cashierId};
+
+    if (start.isValid() && end.isValid()) {
+        sql += "AND s.timestamp BETWEEN ? AND ? ";
+        params << start << end;
     }
-    return false;
+
+    sql += "GROUP BY s.id ORDER BY s.timestamp DESC";
+
+    QSqlQuery query = executeQuery(sql, params);
+
+    QList<QMap<QString, QVariant>> results;
+    while (query.next()) {
+        QMap<QString, QVariant> record;
+        record["id"] = query.value("id");
+        record["timestamp"] = query.value("timestamp");
+        record["total"] = query.value("total");
+        record["payment"] = query.value("payment");
+        record["member_phone"] = query.value("member_phone");
+        record["items"] = query.value("items");
+        results.append(record);
+    }
+    return results;
 }
