@@ -11,5 +11,6 @@
         <file>icon/Product/Statistics.png</file>
         <file>icon/Product/NumIn.png</file>
         <file>icon/Product/NumOut.png</file>
+        <file>icon/Product/Exit.png</file>
     </qresource>
 </RCC>
