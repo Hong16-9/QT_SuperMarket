@@ -713,3 +713,14 @@ void DBManager::resetmonthlysale(){
     );
     qInfo() << "Monthly sales data has been reset";
 }
+
+bool DBManager::isBarcodeExists(const QString& barcode)
+{
+    QSqlQuery query(m_database);
+    query.prepare("SELECT COUNT(*) FROM products WHERE barcode = ?");
+    query.addBindValue(barcode);
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() > 0;
+    }
+    return false;
+}
