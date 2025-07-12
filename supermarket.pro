@@ -2,7 +2,7 @@ QT       += core gui
 QT += core gui sql widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
+win32:RC_ICONS = 1.ico
 CONFIG += c++17
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -54,4 +54,4 @@ DISTFILES += \
     supermarket.pro.user
 
 RESOURCES += \
-    icon.qrc
+    Icon.qrc

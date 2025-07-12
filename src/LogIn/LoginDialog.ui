@@ -42,7 +42,16 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="usernameEdit"/>
+       <widget class="QLineEdit" name="usernameEdit">
+        <property name="font">
+         <font>
+          <family>Adobe 黑体 Std R</family>
+          <pointsize>9</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -64,8 +73,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../icon.qrc">
-          <normaloff>:/LogIn/icon/codeshow.png</normaloff>:/LogIn/icon/codeshow.png</iconset>
+         <iconset resource="../../Icon.qrc">
+          <normaloff>:/LogIn/icon/LogIn/codeshow.png</normaloff>:/LogIn/icon/LogIn/codeshow.png</iconset>
         </property>
         <property name="flat">
          <bool>true</bool>
@@ -84,6 +93,13 @@
      <width>411</width>
      <height>16</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Adobe Arabic</family>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
    </property>
    <property name="text">
     <string/>
@@ -128,7 +144,6 @@
     <font>
      <family>Adobe 黑体 Std R</family>
      <pointsize>20</pointsize>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
@@ -147,7 +162,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../icon.qrc"/>
+  <include location="../../Icon.qrc"/>
  </resources>
  <connections/>
 </ui>
