@@ -45,21 +45,29 @@ int main(int argc, char *argv[])
                          productPage->show();
                      });
 
+    // 连接登录成功信号
+    QObject::connect(&loginDialog, &LoginDialog::switch_to_cashier,
+                     [&](const QString &userName) {
+                         if (checkwindow) {
+                             checkwindow->deleteLater(); // 清理旧窗口
+                         }
+                         checkwindow = new Check_Mainwindow(userName);
+
+                         // 将返回信号连接移到窗口创建后
+                         QObject::connect(checkwindow, &Check_Mainwindow::backToLogin, [&]() {
+                             checkwindow->hide();       //隐藏收银窗口
+                             loginDialog.show();        //显示原登录窗口
+                         });
+
+                         loginDialog.hide();
+                         checkwindow->show();
+                     });
+
 
     // 连接登录对话框的信号
     QObject::connect(&loginDialog, &LoginDialog::switch_to_register, [&]() {
         loginDialog.hide();
         registerDialog.show();
-    });
-
-    QObject::connect(&loginDialog, &LoginDialog::switch_to_cashier, [&](QString username) {
-        // 这里可以打开收银界面
-        qDebug() << "收银员登录成功:" << username;
-        checkwindow=new Check_Mainwindow(username);
-        loginDialog.hide();
-        checkwindow->show();
-        // CashierWindow cashierWindow(username);
-        // cashierWindow.show();
     });
 
     // 连接注册对话框的信号

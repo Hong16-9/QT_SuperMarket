@@ -18,6 +18,8 @@
 #include<QCoreApplication>
 #include<QDebug>
 #include<QInputDialog>
+#include<QFormLayout>
+#include<QDialogButtonBox>
 
 
 
@@ -33,9 +35,9 @@ QT_END_NAMESPACE
 class PRoduct {
 public:
     PRoduct(int id = -1, const QString& name = "", const QString& barcode = "",
-            double price = 0.0, int stock = 0, const QString& category = "")
+            double price = 0.0, int stock = 0, const QString& category = "", int monthly_sales=0)
         : m_id(id), m_name(name), m_barcode(barcode), m_price(price),
-        m_stock(stock), m_category(category) {}
+        m_stock(stock), m_category(category),m_monthly_sales(monthly_sales){}
 
     int id() const { return m_id; }
     QString name() const { return m_name; }
@@ -43,6 +45,7 @@ public:
     double price() const { return m_price; }
     int stock() const { return m_stock; }
     QString category() const { return m_category; }
+    int monthly_sales() const {return m_monthly_sales;}
 
 private:
     int m_id;           // 商品ID
@@ -51,6 +54,7 @@ private:
     double m_price;     // 单价
     int m_stock;        // 库存
     QString m_category; // 分类
+    int m_monthly_sales;//月销量
 };
 
 //对话框类定义，方便后续购物时弹出商品数量选择的对话框
@@ -117,7 +121,7 @@ class Check_Mainwindow : public QMainWindow
     Q_OBJECT
 
 public:
-    Check_Mainwindow(QString name,QWidget *parent = nullptr);
+    Check_Mainwindow(QString username,QWidget *parent = nullptr);
     ~Check_Mainwindow();
 
 
@@ -133,6 +137,11 @@ private slots:
     void paybtnclicked();
 
     void backbtnclicked();
+
+    void addmemberclicked();
+
+signals:
+    void backToLogin();  //返回登录的信号
 
 
 private:
@@ -152,7 +161,11 @@ private:
 
     std::vector<CartItem> m_cartItems;            //创建数据模型
 
-    QString name;  //新增，接受收银员名称
+    QString username;  //新增，接受收银员名称
+    int cashierID=-1;      //储存收银员的ID
+
+
+
 };
 
 #endif // CHECK_MAINWINDOW_H
