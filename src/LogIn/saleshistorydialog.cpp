@@ -13,7 +13,7 @@ SalesHistoryDialog::SalesHistoryDialog(int cashierId, QWidget *parent)
     : QDialog(parent), m_cashierId(cashierId)
 {
     setWindowTitle("销售历史记录");
-    setMinimumSize(800, 600);
+    setMinimumSize(500, 600);
 
     // 创建主布局
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
