@@ -89,6 +89,10 @@
    <addaction name="backToLogin"/>
   </widget>
   <action name="Add_Product">
+   <property name="icon">
+    <iconset resource="../../Icon.qrc">
+     <normaloff>:/icon/Product/Add.png</normaloff>:/icon/Product/Add.png</iconset>
+   </property>
    <property name="text">
     <string>添加商品</string>
    </property>
@@ -97,6 +101,10 @@
    </property>
   </action>
   <action name="Delete_Product">
+   <property name="icon">
+    <iconset resource="../../Icon.qrc">
+     <normaloff>:/icon/Product/Delete.png</normaloff>:/icon/Product/Delete.png</iconset>
+   </property>
    <property name="text">
     <string>删除商品</string>
    </property>
@@ -105,6 +113,10 @@
    </property>
   </action>
   <action name="Put_Product">
+   <property name="icon">
+    <iconset resource="../../Icon.qrc">
+     <normaloff>:/icon/Product/Put.png</normaloff>:/icon/Product/Put.png</iconset>
+   </property>
    <property name="text">
     <string>商品入库</string>
    </property>
@@ -113,6 +125,10 @@
    </property>
   </action>
   <action name="importAction">
+   <property name="icon">
+    <iconset resource="../../Icon.qrc">
+     <normaloff>:/icon/Product/NumIn.png</normaloff>:/icon/Product/NumIn.png</iconset>
+   </property>
    <property name="text">
     <string>导入数据</string>
    </property>
@@ -121,6 +137,10 @@
    </property>
   </action>
   <action name="exportAction">
+   <property name="icon">
+    <iconset resource="../../Icon.qrc">
+     <normaloff>:/icon/Product/NumOut.png</normaloff>:/icon/Product/NumOut.png</iconset>
+   </property>
    <property name="text">
     <string>导出数据</string>
    </property>
@@ -129,6 +149,10 @@
    </property>
   </action>
   <action name="Out_Product">
+   <property name="icon">
+    <iconset resource="../../Icon.qrc">
+     <normaloff>:/icon/Product/Out.png</normaloff>:/icon/Product/Out.png</iconset>
+   </property>
    <property name="text">
     <string>商品出库</string>
    </property>
@@ -145,6 +169,10 @@
    </property>
   </action>
   <action name="Sale_Action">
+   <property name="icon">
+    <iconset resource="../../Icon.qrc">
+     <normaloff>:/icon/Product/Statistics.png</normaloff>:/icon/Product/Statistics.png</iconset>
+   </property>
    <property name="text">
     <string>销售统计看板</string>
    </property>
@@ -153,6 +181,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../Icon.qrc"/>
+ </resources>
  <connections/>
 </ui>
