@@ -1,6 +1,7 @@
 #include "Check/Check_Mainwindow.h"
 #include "ui_Check_Mainwindow.h"
 #include "LogIn/LoginDialog.h"
+#include "LogIn/SalesHistoryDialog.h"
 
 Check_Mainwindow::Check_Mainwindow(QString username,QWidget *parent)
     : QMainWindow(parent)
@@ -87,6 +88,14 @@ void Check_Mainwindow::setupUI(){
     }
     ui->productlistWidget->setDragDropMode(QAbstractItemView::NoDragDrop); //           禁用商品区拖放
     ui->productlistWidget->setSelectionMode(QAbstractItemView::SingleSelection); //     限制商品区单选
+
+
+    //这里我（lbr-lbl）修改了一下，限制了商品图标大小，不决定最终效果
+    // 设置商品列表为网格视图
+    ui->productlistWidget->setViewMode(QListView::IconMode);
+    ui->productlistWidget->setGridSize(QSize(80, 80));
+    ui->productlistWidget->setIconSize(QSize(80, 80));
+    ui->productlistWidget->setResizeMode(QListView::Adjust);
 
 
 
@@ -739,3 +748,14 @@ void Check_Mainwindow::addmemberclicked(){
 
 }
 
+
+void Check_Mainwindow::on_historyBtn_clicked()
+{
+    if (cashierID == -1) {
+        QMessageBox::warning(this, "警告", "未找到当前收银员信息");
+        return;
+    }
+
+    SalesHistoryDialog dialog(cashierID, this);
+    dialog.exec();
+}

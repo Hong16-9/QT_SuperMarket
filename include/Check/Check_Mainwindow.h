@@ -140,6 +140,8 @@ private slots:
 
     void addmemberclicked();
 
+    void on_historyBtn_clicked();
+
 signals:
     void backToLogin();  //返回登录的信号
 
