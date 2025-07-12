@@ -18,6 +18,7 @@
 #include<QCoreApplication>
 #include<QDebug>
 #include<QInputDialog>
+#include<QFormLayout>
 
 
 
@@ -136,6 +137,11 @@ private slots:
 
     void backbtnclicked();
 
+    void addmemberclicked();
+
+signals:
+    void backToLogin();  //返回登录的信号
+
 
 private:
     Ui::Check_Mainwindow *ui;
@@ -155,7 +161,10 @@ private:
     std::vector<CartItem> m_cartItems;            //创建数据模型
 
     QString username;  //新增，接受收银员名称
-    int cashierID; //接受收银员ID
+    int cashierID=-1;      //储存收银员的ID
+
+
+
 };
 
 #endif // CHECK_MAINWINDOW_H

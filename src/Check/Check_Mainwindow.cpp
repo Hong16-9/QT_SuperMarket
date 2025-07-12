@@ -11,6 +11,13 @@ Check_Mainwindow::Check_Mainwindow(QString username,QWidget *parent)
         QMessageBox::critical(this, "数据库错误", "无法初始化数据库，请检查配置");
         exit(1); // 数据库初始化失败则退出
     }
+
+    //通过 username 查询 user_id
+    cashierID = DBManager::instance().getUserIdByName(username);
+    if (cashierID == -1) {
+        QMessageBox::warning(this, "警告", "未找到当前用户信息");
+    }
+
     ui->setupUi(this);
     setupUI();
     setWindowTitle("超市收银系统");
@@ -29,6 +36,9 @@ void Check_Mainwindow::setupUI(){
 
     ui->cartlistView->setModel(m_cartModel);                                   //关联模型和视图
 
+
+
+    setWindowTitle(QString("超市收银系统 - 当前用户：%1").arg(username));
 
 
     // 查找 productgroupBox 并检查有效性
@@ -90,6 +100,7 @@ void Check_Mainwindow::setupUI(){
     connect(ui->clearbtn, &QPushButton::clicked,this, &Check_Mainwindow::clearbtnclicked);
     connect(ui->paybtn, &QPushButton::clicked,this, &Check_Mainwindow::paybtnclicked);
     connect(ui->backbtn,&QPushButton::clicked,this,&Check_Mainwindow::backbtnclicked);
+    connect(ui->addmemberbtn,&QPushButton::clicked,this,&Check_Mainwindow::addmemberclicked);
 
     if (!ui) {
         qCritical() << "ui 未初始化!";
@@ -499,6 +510,61 @@ void Check_Mainwindow::paybtnclicked()
 
 
 
+    //用getProductById记录原始库存
+    QMap<int, int> originalStock;
+    bool stockSnapshotSuccess = true;
+
+    for (const auto& cartItem : m_cartItems) {
+        int productId = cartItem.product().id();
+        QMap<QString, QVariant> product = DBManager::instance().getProductById(productId);
+
+        if (!product.isEmpty()) {
+            originalStock[productId] = product["stock"].toInt();          //查询每个商品的库存信息，并存储到originalStock中
+        } else {
+            stockSnapshotSuccess = false;
+            QMessageBox::critical(this, "错误", QString("获取商品(ID:%1)库存失败").arg(productId));
+            return;
+        }
+    }
+
+    if (!stockSnapshotSuccess) return;
+
+    //扣减库存
+    bool stockDeductionSuccess = true;
+
+    for (const auto& cartItem : m_cartItems) {
+        int productId = cartItem.product().id();
+        int buyQuantity = cartItem.quantity();
+
+        QSqlQuery query;
+        query.prepare("UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?");     //确保库存够才进行减扣
+        query.addBindValue(buyQuantity);
+        query.addBindValue(productId);
+        query.addBindValue(buyQuantity);
+
+        if (!query.exec() || query.numRowsAffected() == 0) {
+            stockDeductionSuccess = false;
+            qCritical() << "库存更新失败，可能库存不足:" << query.lastError().text();
+            break;
+        }
+    }
+
+    if (!stockDeductionSuccess) {
+        //若库存扣减失败，回滚到库存快照值
+        for (auto it = originalStock.begin(); it != originalStock.end(); ++it) {
+            QSqlQuery restoreQuery;
+            restoreQuery.prepare("UPDATE products SET stock = ? WHERE id = ?");
+            restoreQuery.addBindValue(it.value());
+            restoreQuery.addBindValue(it.key());
+            restoreQuery.exec();
+        }
+        QMessageBox::critical(this, "支付失败", "库存不足，支付已取消");
+        return;
+    }
+
+
+
+
 
     //将购物车商品转化为销售明细列表，准备插入数据库
     QList<QVariantMap> saleItems;
@@ -511,54 +577,30 @@ void Check_Mainwindow::paybtnclicked()
     }
 
 
-    //数据库事务处理（便于进行库存减扣）
-    DBManager& db = DBManager::instance();
-    QSqlDatabase sqlDb = QSqlDatabase::database();       //获取当前数据库连接
-    sqlDb.transaction();                                 //手动开始事务
-    bool success = true;                                 //标记操作成功与否
-
-
-    //历遍购物车商品进行库存减扣
-    for (const auto& cartItem : m_cartItems) {
-        int productId = cartItem.product().id();
-        int buyQuantity = cartItem.quantity();
-
-        //直接使用SQL语句扣减库存，同时检查库存是否足够
-        QSqlQuery query;
-        query.prepare("UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?");
-        query.addBindValue(buyQuantity);              //减扣商品数量
-        query.addBindValue(productId);                //商品ID
-        query.addBindValue(buyQuantity);              //确保库存足够
-
-        //执行SQL并检查结果
-        if (!query.exec() || query.numRowsAffected() == 0) {
-            success = false;
-            qCritical() << "库存更新失败，可能库存不足:" << query.lastError().text();
-            break;
-        }
-    }
-
     //如果库存扣减成功，继续调用addSale
-    if (success) {
-        success = db.addSale(
-            1,
-            finalTotal,
-            payment,
-            saleItems,
-            hasmember ? memberPhone : ""           //是会员就记录手机号，不是就记为空
-            );
-    }
+    DBManager& db = DBManager::instance();
+    bool success = db.addSale(
+        cashierID,
+        finalTotal,
+        payment,
+        saleItems,
+        hasmember ? memberPhone : ""                 //是会员就记录手机号，不是就记为空
+        );
 
-    //提交或回滚事务
-    if (success && sqlDb.commit()) {
+
+    //处理支付结果
+    if (success) {
         // 构建支付成功信息
-        QString message = QString("支付金额: %.2f元\n").arg(finalTotal);
+        QString message = QString("支付金额: %1元\n").arg(payment);  //显示实付金额
+        message += QString("应付金额: %1元\n").arg(finalTotal);       //显示应付金额
+        message += QString("找零: %1元\n\n").arg(change);            //显示找零
+
         if (discount < 1.0) {
-            message += QString("原价: %.2f元\n节省: %.2f元\n")
+            message += QString("原价: %1元\n节省: %2元\n")
                            .arg(originalTotal).arg(savedAmount);
             if (hasmember) {
                 message += isBirthday ? "折扣详情: 生日85折\n"
-                                      : QString("折扣详情: 会员折扣(%.1f折)\n")
+                                      : QString("折扣详情: 会员折扣(%1折)\n")
                                             .arg(discount * 10);
             }
         }
@@ -580,14 +622,22 @@ void Check_Mainwindow::paybtnclicked()
             updateProduct("全部");       //刷新商品列表
         }
     else {                                 //如果失败，回滚事务，并取消已执行SQL的操作
-            sqlDb.rollback();
-            QMessageBox::critical(this, "支付失败",
-                                  success ? "添加销售记录失败" : "库存不足，支付已取消");
+        //销售记录添加失败，恢复库存
+        for (auto it = originalStock.begin(); it != originalStock.end(); ++it) {
+            QSqlQuery restoreQuery;
+            restoreQuery.prepare("UPDATE products SET stock = ? WHERE id = ?");                //将商品直接设置为快照中的值
+            restoreQuery.addBindValue(it.value());               //原始库存
+            restoreQuery.addBindValue(it.key());                 //商品ID
+            if (!restoreQuery.exec()) {
+                qCritical() << "恢复库存失败（商品ID:" << it.key() << "）：" << restoreQuery.lastError().text();
+            }
         }
+        QMessageBox::critical(this, "支付失败", "添加销售记录失败，已恢复库存");
+     }
 
 }
 
-
+//返回键
 void Check_Mainwindow::backbtnclicked(){
     //询问用户是否确认返回
     QMessageBox::StandardButton reply = QMessageBox::question(
@@ -600,16 +650,92 @@ void Check_Mainwindow::backbtnclicked(){
         m_cartItems.clear();
         updateCartview();
 
-        // 隐藏当前窗口
-        this->close();
-
-        // 创建并显示登录窗口
-        LoginDialog* loginDialog = new LoginDialog();
-        // 确保登录窗口关闭时释放资源
-        loginDialog->setAttribute(Qt::WA_DeleteOnClose);
-        // 显示登录窗口
-        loginDialog->show();
-
+        emit backToLogin();  //发送返回登录的信号
+        this->close();       //关闭当前收银窗口
 
     }
 }
+
+
+//添加会员键
+void Check_Mainwindow::addmemberclicked(){
+    //获取用户输入的手机号
+    bool ok;
+    QString phone = QInputDialog::getText(
+        this, "添加会员", "请输入会员手机号:",
+        QLineEdit::Normal, "", &ok
+        );
+
+    if (!ok || phone.isEmpty()) return; // 用户取消或输入为空
+
+    //验证手机号格式（11位数字）
+    if (!phone.startsWith("1") || phone.length() != 11 || !phone.toLongLong()) {
+        QMessageBox::warning(this, "错误", "请输入有效的11位手机号");
+        return;
+    }
+
+    //检查手机号是否已注册
+    DBManager& db = DBManager::instance();
+    QMap<QString, QVariant> member = db.getMemberByPhone(phone);
+    if (!member.isEmpty()) {
+        QMessageBox::information(this, "提示", "该手机号已注册为会员");
+        return;
+    }
+
+
+    //输入会员信息（包含姓名和生日）
+    QDialog dialog(this);                 //创建模态对话框
+    dialog.setWindowTitle("添加会员");
+    dialog.setMinimumWidth(300);
+
+    QFormLayout layout(&dialog);         //自动对齐标签和输入框
+
+    QLineEdit* nameEdit = new QLineEdit(&dialog);     //输入会员姓名
+    QLineEdit* birthdayEdit = new QLineEdit(&dialog); //输入会员生日
+    birthdayEdit->setPlaceholderText("YYYY-MM-DD");
+
+    layout.addRow("姓名:", nameEdit);
+    layout.addRow("生日:", birthdayEdit);
+
+    QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    layout.addRow(&buttonBox);
+
+    connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    if (dialog.exec() != QDialog::Accepted) return;
+
+    QString name = nameEdit->text().trimmed();             //去除无效的空白字符
+    QString birthdayStr = birthdayEdit->text().trimmed();
+
+    // 验证生日是否正确
+    QDate birthday;
+    if (!birthdayStr.isEmpty()) {
+        birthday = QDate::fromString(birthdayStr, "yyyy-MM-dd");
+        if (!birthday.isValid()) {
+            QMessageBox::warning(this, "错误", "生日格式不正确，请使用 YYYY-MM-DD 格式");
+            return;
+        }
+    }
+    if (birthday > QDate::currentDate()) {
+        QMessageBox::warning(this, "错误", "你小子还没出生就来超市购物是吧");
+        return;
+    }
+
+    // 创建会员（默认折扣0.95，初始积分为0）
+    bool success = db.addMember(
+        phone,             //手机号
+        name,              //姓名
+        0.95,              //固定95折
+        birthdayStr,       //生日
+        0                  //初始积分
+        );
+
+    if (success) {
+        QMessageBox::information(this, "成功", "会员添加成功！默认折扣95折");
+    } else {
+        QMessageBox::critical(this, "失败", "添加会员失败，请重试");
+    }
+
+}
+
