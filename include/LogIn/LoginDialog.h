@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QMessageBox>
 #include <QString>  // 确保包含QString头文件
+#include <QObject>
+#include <QEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class LoginDialog; }
@@ -25,9 +27,12 @@ private slots:
     void on_codeshow_pressed();
 
     void on_codeshow_released();
-
+\
 private:
     void Into(QString UserName, QString Role); // 登陆成功后跳转的函数
+protected:
+
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 signals:
     void switch_to_productManage(QString UserName);
@@ -36,5 +41,7 @@ signals:
 
 private:
     Ui::LoginDialog *ui;
+
+
 };
 #endif // LOGINDIALOG_H

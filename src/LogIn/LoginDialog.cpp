@@ -16,6 +16,9 @@ LoginDialog::LoginDialog(QWidget *parent)
 
     // 设置密码输入框为密码模式
     ui->passwordEdit->setEchoMode(QLineEdit::Password);
+
+    ui->label_4->installEventFilter(this);
+
 }
 
 LoginDialog::~LoginDialog()
@@ -71,4 +74,14 @@ void LoginDialog::on_codeshow_pressed()
 void LoginDialog::on_codeshow_released()
 {
     ui->passwordEdit->setEchoMode(QLineEdit::Password);
+}
+
+bool LoginDialog::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == ui->label_4 && event->type() == QEvent::MouseButtonDblClick) {
+        ui->usernameEdit->setText("admin");  // 直接填充管理员名
+        ui->passwordEdit->setFocus();        // 自动聚焦密码框
+        return true;  // 事件已处理
+    }
+    return QDialog::eventFilter(obj, event);
 }
