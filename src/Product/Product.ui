@@ -161,6 +161,10 @@
    </property>
   </action>
   <action name="backToLogin">
+   <property name="icon">
+    <iconset resource="../../Icon.qrc">
+     <normaloff>:/icon/Product/Exit.png</normaloff>:/icon/Product/Exit.png</iconset>
+   </property>
    <property name="text">
     <string>返回</string>
    </property>
