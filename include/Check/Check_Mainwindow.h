@@ -19,6 +19,7 @@
 #include<QDebug>
 #include<QInputDialog>
 #include<QFormLayout>
+#include<QDialogButtonBox>
 
 
 

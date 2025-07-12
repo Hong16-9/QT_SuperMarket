@@ -4,8 +4,8 @@
 
 Check_Mainwindow::Check_Mainwindow(QString username,QWidget *parent)
     : QMainWindow(parent)
-    , username(username)
     , ui(new Ui::Check_Mainwindow)
+    , username(username)
 {
     if (!DBManager::instance().initialize()) {
         QMessageBox::critical(this, "数据库错误", "无法初始化数据库，请检查配置");
