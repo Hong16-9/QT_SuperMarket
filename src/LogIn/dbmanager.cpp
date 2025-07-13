@@ -746,3 +746,18 @@ QList<QMap<QString, QVariant>> DBManager::getSalesHistory(int cashierId, const Q
     }
     return results;
 }
+
+QMap<QString, QVariant> DBManager::getProductByName(const QString& name) {
+    QMap<QString, QVariant> product;
+    QSqlQuery query;
+    query.prepare("SELECT * FROM products WHERE name = :name LIMIT 1");
+    query.bindValue(":name", name);
+
+    if (query.exec() && query.next()) {
+        product["id"] = query.value("id");
+        product["name"] = query.value("name");
+        product["stock"] = query.value("stock");
+        // 其他字段按需添加
+    }
+    return product;
+}
