@@ -14,7 +14,6 @@ RegisterDialog::RegisterDialog(QWidget *parent) :
     ui->passwordEdit->setEchoMode(QLineEdit::Password);
     ui->confirmPasswordEdit->setEchoMode(QLineEdit::Password);
     ui->adminPasswordEdit->setEchoMode(QLineEdit::Password);
-
 }
 
 RegisterDialog::~RegisterDialog()
