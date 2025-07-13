@@ -13,6 +13,7 @@ LoginDialog::LoginDialog(QWidget *parent)
 
     // 隐藏错误标签直到需要显示
     ui->errorLabel->hide();
+    ui->errorLabel->setStyleSheet("color:red");
 
     // 设置密码输入框为密码模式
     ui->passwordEdit->setEchoMode(QLineEdit::Password);

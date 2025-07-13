@@ -93,58 +93,109 @@ void SalesStatisticsDialog::loadSalesData()
 {
     salesModel->removeRows(0, salesModel->rowCount());
 
-    // 获取销量数据（这里简化实现，实际应根据过滤条件查询）
     QList<QMap<QString, QVariant>> salesData = DBManager::instance().getMonthlyProductSales();
 
-    double totalSales = 0;
-    double totalRevenue = 0;
+    // 使用列表存储所有销售数据用于排序
+    QList<QPair<int, double>> salesList; // <rowIndex, salesValue>
 
-    for (const auto& sale : salesData) {
+    // 添加以下两行声明总销量和总销售额变量
+    double totalSales = 0.0;
+    double totalRevenue = 0.0;
+
+    // 第一部分：处理商品数据
+    for (int i = 0; i < salesData.size(); ++i) {
+        const auto& sale = salesData[i];
         int id = sale["id"].toInt();
         QString name = sale["name"].toString();
         int quantity = sale["total_sales"].toInt();
         double revenue = quantity * DBManager::instance().getProductById(id)["price"].toDouble();
 
-        QList<QStandardItem*> items;
-        items.append(new QStandardItem(QString::number(id)));
-        items.append(new QStandardItem(name));
-        items.append(new QStandardItem(QString::number(quantity)));
-        items.append(new QStandardItem(QString::number(revenue, 'f', 2)));
+        // 累加总销量和总销售额
+        totalSales += quantity;
+        totalRevenue += revenue;
 
-        // 设置单元格不可编辑
+        QList<QStandardItem*> items;
+
+        // 商品ID - 存储为数值
+        QStandardItem* idItem = new QStandardItem();
+        idItem->setData(id, Qt::DisplayRole);
+        items.append(idItem);
+
+        // 商品名称 - 字符串
+        items.append(new QStandardItem(name));
+
+        // 销量 - 存储为数值
+        QStandardItem* quantityItem = new QStandardItem();
+        quantityItem->setData(quantity, Qt::DisplayRole);
+        items.append(quantityItem);
+
+        // 销售额 - 存储为数值
+        QStandardItem* revenueItem = new QStandardItem();
+        revenueItem->setData(revenue, Qt::DisplayRole);
+        items.append(revenueItem);
+
+        // 设置单元格属性
         foreach (QStandardItem* item, items) {
             item->setEditable(false);
             item->setTextAlignment(Qt::AlignCenter);
         }
 
-        // 高亮显示销量前3的商品
-        if (salesModel->rowCount() < 3) {
-            foreach (QStandardItem* item, items) {
-                item->setBackground(QColor(255, 255, 200)); // 浅黄色背景
-            }
-        }
-
         salesModel->appendRow(items);
 
-        totalSales += quantity;
-        totalRevenue += revenue;
+        // 保存销量值用于后续高亮处理
+        salesList.append(qMakePair(i, static_cast<double>(quantity)));
     }
 
-    // 添加汇总行
+    // 按销量排序（降序）
+    std::sort(salesList.begin(), salesList.end(),
+        [](const QPair<int, double>& a, const QPair<int, double>& b) {
+            return a.second > b.second;
+        });
+    // 高亮销量前三的商品
+    for (int rank = 0; rank < qMin(3, salesList.size()); ++rank) {
+        int row = salesList[rank].first;
+        for (int col = 0; col < salesModel->columnCount(); ++col) {
+            QStandardItem* item = salesModel->item(row, col);
+            item->setBackground(QColor(255, 255, 200)); // 浅黄色背景
+        }
+    }
+
+    // 第二部分：添加汇总行（数值存储）
     QList<QStandardItem*> totalItems;
-    totalItems.append(new QStandardItem("汇总"));
-    totalItems.append(new QStandardItem(""));
-    totalItems.append(new QStandardItem(QString::number(totalSales)));
-    totalItems.append(new QStandardItem(QString::number(totalRevenue, 'f', 2)));
 
-    foreach (QStandardItem* item, totalItems) {
-        item->setEditable(false);
-        item->setBackground(QColor(230, 230, 250)); // 浅紫色背景
-        item->setTextAlignment(Qt::AlignCenter);
-        QFont font = item->font();
-        font.setBold(true);
-        item->setFont(font);
-    }
+    // 第一列：文本
+    QStandardItem* totalLabel = new QStandardItem("汇总");
+    totalLabel->setEditable(false);
+    totalLabel->setTextAlignment(Qt::AlignCenter);
+    totalLabel->setBackground(QColor(230, 230, 250));
+    QFont font = totalLabel->font();
+    font.setBold(true);
+    totalLabel->setFont(font);
+    totalItems.append(totalLabel);
+
+    // 第二列：空
+    QStandardItem* emptyItem = new QStandardItem();
+    emptyItem->setEditable(false);
+    emptyItem->setBackground(QColor(230, 230, 250));
+    totalItems.append(emptyItem);
+
+    // 第三列：总销量（数值）
+    QStandardItem* totalSalesItem = new QStandardItem();
+    totalSalesItem->setData(totalSales, Qt::DisplayRole);  // 现在totalSales已定义
+    totalSalesItem->setEditable(false);
+    totalSalesItem->setTextAlignment(Qt::AlignCenter);
+    totalSalesItem->setBackground(QColor(230, 230, 250));
+    totalSalesItem->setFont(font);
+    totalItems.append(totalSalesItem);
+
+    // 第四列：总销售额（数值）
+    QStandardItem* totalRevenueItem = new QStandardItem();
+    totalRevenueItem->setData(totalRevenue, Qt::DisplayRole);  // 现在totalRevenue已定义
+    totalRevenueItem->setEditable(false);
+    totalRevenueItem->setTextAlignment(Qt::AlignCenter);
+    totalRevenueItem->setBackground(QColor(230, 230, 250));
+    totalRevenueItem->setFont(font);
+    totalItems.append(totalRevenueItem);
 
     salesModel->appendRow(totalItems);
 }
@@ -174,7 +225,21 @@ void SalesStatisticsDialog::onExportClicked()
     for (int row = 0; row < salesModel->rowCount(); ++row) {
         QStringList rowData;
         for (int col = 0; col < salesModel->columnCount(); ++col) {
-            rowData << salesModel->item(row, col)->text();
+            QStandardItem* item = salesModel->item(row, col);
+
+            // 特殊处理数值列
+            if (col == 0 || col == 2 || col == 3) { // ID, 销量, 销售额列
+                QVariant data = item->data(Qt::DisplayRole);
+
+                // 检查是否是数值类型
+                if (data.type() == QVariant::Int || data.type() == QVariant::Double) {
+                    rowData << data.toString();
+                } else {
+                    rowData << item->text();
+                }
+            } else {
+                rowData << item->text();
+            }
         }
         out << rowData.join(",") << "\n";
     }

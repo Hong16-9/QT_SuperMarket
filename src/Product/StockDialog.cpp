@@ -384,7 +384,7 @@ int StockDialog::getChangeAmount() const
     if (!isSingleProductMode) return 0;
     return operation == StockOperation::In ?
                quantitySpinBox->value() :
-               -quantitySpinBox->value();
+               quantitySpinBox->value();
 }
 
 // 数据库接口：获取所有商品
