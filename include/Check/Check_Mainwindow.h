@@ -20,6 +20,7 @@
 #include<QInputDialog>
 #include<QFormLayout>
 #include<QAbstractButton>
+#include<QTimer>
 
 
 
@@ -149,6 +150,16 @@ public:
         buttonLayout->addWidget(okButton);
         buttonLayout->addWidget(cancelButton);               //把确定和取消键放在水平布局上
         layout->addLayout(buttonLayout);                     //把水平布局放在总布局上
+
+        //使用定时器在对话框显示后将光标移动到文本末尾
+        QTimer::singleShot(0, [this]() {                    //使用定时器确保在对话框出来后再执行以下操作
+            if (QLineEdit *lineEdit = quantitySpinBox->findChild<QLineEdit*>()) {      //获取QLineEdit对象
+                lineEdit->setCursorPosition(lineEdit->text().length());                //把光标移到文本末尾
+                lineEdit->setFocus();                    //让输入框获得焦点，这样可以直接输入内容，不用先点击文本框
+
+            }
+        });
+
     }
 
     int getQuantity() const{return quantitySpinBox->value(); }       //返回spinBox输入的值，当点击确定时，可以调用这个值
