@@ -72,8 +72,6 @@ void Check_Mainwindow::setupUI(){
     //设置购物车区
     QVBoxLayout* cartLayout = qobject_cast<QVBoxLayout*>(cartWidget->layout());
     if (cartLayout) {
-        // 若总价区域已在 .ui 设好水平布局，无需重复创建
-        // 如需微调，可在这里 addWidget 或调整 stretch
         ui->cartlistView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);   //设置购物车区域商品条目占满视图宽度
     }
 
@@ -96,6 +94,28 @@ void Check_Mainwindow::setupUI(){
     ui->productlistWidget->setGridSize(QSize(80, 80));
     ui->productlistWidget->setIconSize(QSize(80, 80));
     ui->productlistWidget->setResizeMode(QListView::Adjust);
+
+
+
+
+    //在状态栏添加收银员和日期
+
+    QLabel* cashierLabel = new QLabel(this);         // 创建收银员标签（左侧）
+    cashierLabel->setText(QString("当前收银员：%1").arg(username));
+    cashierLabel->setStyleSheet("margin-left: 10px;");  //左侧留边距
+
+
+    QLabel* dateLabel = new QLabel(this);           //创建日期标签（右侧）
+    QDate currentDate = QDate::currentDate();  //获取当前日期
+    dateLabel->setText(currentDate.toString("当前日期：yyyy-MM-dd"));  //格式化日期为"年-月-日"
+    dateLabel->setStyleSheet("margin-right: 10px;");  //右侧留边距
+
+    //添加到状态栏
+    statusBar()->addWidget(cashierLabel);  // 左侧添加，随窗口缩放左移
+    statusBar()->addPermanentWidget(dateLabel);  // 右侧添加，固定在右边
+
+    // 确保状态栏可见（发送一个空的临时消息）
+    statusBar()->showMessage("");
 
 
 
@@ -173,7 +193,7 @@ QStringList Check_Mainwindow::getcategory() {
 }
 
 
-//获取商品分类并创建分类按钮
+//获取商品分类并创建分类按钮(动态生成按钮）
 void Check_Mainwindow::initcategory(){
 
     QStringList categories = getcategory();                                    //查找布局
@@ -189,6 +209,16 @@ void Check_Mainwindow::initcategory(){
         QPushButton* btn = new QPushButton(category,categoryWidget);
         btn->setCheckable(true);                                //设置为单选按钮
         if (category == "全部") btn->setChecked(true);          //默认选中“全部”分类
+
+        //修改一下按钮的样式
+        btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding); //宽度随着窗口扩展，高度在大于最小值的情况下随着窗口扩展
+        btn->setStyleSheet(""
+                           "min-width: 60px;"   //最小宽度，避免过窄
+                           "min-height: 40px;"  //最小高度，确保可点击
+                           "padding: 6px;"      //内边距，增加点击区域
+                           );
+        btn->setStyleSheet("text-align: center;");  // 确保文字居中
+
         m_categoryButtons.push_back(btn);                      //把按钮存入容器
         categoriesLayout->addWidget(btn);                      //把每个按钮添加到布局中
 
@@ -233,7 +263,7 @@ void Check_Mainwindow::updateProduct(const QString& category){
             );
 
         QListWidgetItem* item = new QListWidgetItem;
-        item->setText(QString("%1\n%2元/个\n库存: %3")
+        item->setText(QString("%1\n%2元\n库存: %3")
                           .arg(product.name())
                           .arg(product.price(), 0, 'f', 2)
                           .arg(product.stock()));                         //给productlistWidget创建列表项并设置文本
@@ -246,8 +276,6 @@ void Check_Mainwindow::updateProduct(const QString& category){
     }
 
 
-
-
 }
 
 
@@ -257,7 +285,7 @@ void Check_Mainwindow::updateCarttotal(){
     for (const auto &item:m_cartItems) {                                              //历遍购物车，累加总价
         total+=item.getTotalPrice();
     }
-    ui->totalLabel->setText(QString("总计: %1元").arg(total, 0, 'f', 2));              //显示总价
+    ui->totalLabel->setText(QString("总计：%1元").arg(total, 0, 'f', 2));              //显示总价
 }
 
 
