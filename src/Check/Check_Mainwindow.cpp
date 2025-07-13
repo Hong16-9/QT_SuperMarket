@@ -1,11 +1,12 @@
 #include "Check/Check_Mainwindow.h"
 #include "ui_Check_Mainwindow.h"
 #include "LogIn/LoginDialog.h"
+#include "LogIn/SalesHistoryDialog.h"
 
 Check_Mainwindow::Check_Mainwindow(QString username,QWidget *parent)
     : QMainWindow(parent)
-    , username(username)
     , ui(new Ui::Check_Mainwindow)
+    , username(username)
 {
     if (!DBManager::instance().initialize()) {
         QMessageBox::critical(this, "数据库错误", "无法初始化数据库，请检查配置");
@@ -87,6 +88,14 @@ void Check_Mainwindow::setupUI(){
     ui->productlistWidget->setSelectionMode(QAbstractItemView::SingleSelection); //     限制商品区单选
 
 
+    //这里我（lbr-lbl）修改了一下，限制了商品图标大小，不决定最终效果
+    // 设置商品列表为网格视图
+    ui->productlistWidget->setViewMode(QListView::IconMode);
+    ui->productlistWidget->setGridSize(QSize(80, 80));
+    ui->productlistWidget->setIconSize(QSize(80, 80));
+    ui->productlistWidget->setResizeMode(QListView::Adjust);
+
+
 
 
     //在状态栏添加收银员和日期
@@ -121,6 +130,22 @@ void Check_Mainwindow::setupUI(){
     connect(ui->paybtn, &QPushButton::clicked,this, &Check_Mainwindow::paybtnclicked);
     connect(ui->backbtn,&QPushButton::clicked,this,&Check_Mainwindow::backbtnclicked);
     connect(ui->addmemberbtn,&QPushButton::clicked,this,&Check_Mainwindow::addmemberclicked);
+
+    //修正了购物车标题栏无法显示，不代表最终效果
+    if (QTableView* tableView = qobject_cast<QTableView*>(ui->cartlistView)) {
+        // 确保标题可见
+        tableView->horizontalHeader()->setVisible(true);
+
+        // 设置合理的列宽策略
+        tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch); // 商品列拉伸
+        tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // 单价列拉伸
+        tableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch); // 数量列拉伸
+        tableView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch); // 小计列拉伸
+
+        // 设置最小行高
+        tableView->verticalHeader()->setDefaultSectionSize(36);
+    }
+
 
     if (!ui) {
         qCritical() << "ui 未初始化!";
@@ -767,3 +792,14 @@ void Check_Mainwindow::addmemberclicked(){
 
 }
 
+
+void Check_Mainwindow::on_historyBtn_clicked()
+{
+    if (cashierID == -1) {
+        QMessageBox::warning(this, "警告", "未找到当前收银员信息");
+        return;
+    }
+
+    SalesHistoryDialog dialog(cashierID, this);
+    dialog.exec();
+}

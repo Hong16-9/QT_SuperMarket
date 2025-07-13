@@ -1,4 +1,5 @@
 #include "Product/Product.h"
+#include "qtimer.h"
 #include "ui_Product.h"
 #include "Product/AddProductDialog.h"
 #include "Product/StockDialog.h"
@@ -25,6 +26,32 @@ Product::Product(QString name, QWidget *parent) :
     setupConnections();
     loadProducts();
     setWindowTitle(QString("商品管理 - 当前用户: %1").arg(name));
+
+    // 修正后的样式表（确保语法正确，无多余空格或缺失符号）
+    setStyleSheet(R"(
+        QMainWindow {
+            background-color: #f0f0f0;
+        }
+        QPushButton {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+        }
+        QPushButton:hover {
+            background-color: #45a049;
+        }
+        QTableView {
+            background-color: white;
+            border: 1px solid #ccc;
+        }
+        QHeaderView::section {
+            background-color: #e0e0e0;
+            padding: 5px;
+            border: 1px solid #ccc;
+        }
+    )");
 }
 
 Product::~Product()
@@ -109,6 +136,7 @@ void Product::initUI()
     statusBar()->addWidget(adminLabel);
     statusBar()->addPermanentWidget(dateLabel);
 }
+
 // 连接信号与槽（关联Action和控件事件）
 void Product::setupConnections()
 {
@@ -139,6 +167,8 @@ void Product::loadProducts()
     // 从数据库获取所有商品
     QList<QMap<QString, QVariant>> products = dbManager->getAllProducts();
 
+    QList<QMap<QString, QVariant>> lowStockProducts; // 存储库存不足的商品
+
     for (const auto& product : products) {
         QList<QStandardItem*> items;
         items.append(new QStandardItem(product["id"].toString()));
@@ -150,6 +180,7 @@ void Product::loadProducts()
         QStandardItem* stockItem = new QStandardItem(product["stock"].toString());
         if (product["stock"].toInt() < 20) {
             stockItem->setForeground(Qt::red);
+            lowStockProducts.append(product); // 添加到库存不足的商品列表
         }
         items.append(stockItem);
 
@@ -164,6 +195,12 @@ void Product::loadProducts()
     }
 
     updateCategoryComboBox();
+
+    // 关键修改：使用QTimer延迟提示框，确保页面先显示
+    // 0毫秒延迟表示"当前事件循环结束后执行"，此时页面已完成绘制
+    QTimer::singleShot(0, this, [this, lowStockProducts]() {
+        showLowStockProducts(lowStockProducts);
+    });
 }
 
 // 更新分类下拉框
@@ -267,30 +304,15 @@ void Product::onPutProductClicked()
     QString productName = productModel->item(row, 1)->text();          // 名称在第1列
     int currentStock = productModel->item(row, 4)->text().toInt();     // 库存在第4列
 
-    // 显示入库对话框（指定操作类型为“入库”）
     StockDialog dialog(StockOperation::In, productName, currentStock, this);
     if (dialog.exec() == QDialog::Accepted) {
-        // 获取入库数量（通过对话框接口）
-        auto stockChanges = dialog.getStockChanges();
-        if (stockChanges.isEmpty()) {
-            QMessageBox::warning(this, "错误", "未获取到入库信息！");
-            return;
-        }
-
-        // 调用数据库接口更新库存（入库为正数）
-        bool updateSuccess = dbManager->updateProductStock(
-            stockChanges.first().first,  // 商品ID
-            stockChanges.first().second   // 入库数量（正数）
-            );
-
-        if (updateSuccess) {
-            QMessageBox::information(this, "成功",
-                                     QString("商品入库成功！\n入库数量：%1\n更新后库存：%2")
-                                         .arg(stockChanges.first().second)
-                                         .arg(currentStock + stockChanges.first().second));
-            loadProducts(); // 刷新表格数据
+        int amount = dialog.getChangeAmount();
+        // 修正：调用正确的函数名
+        if (dbManager->updateProductStock(productId, amount)) {
+            QMessageBox::information(this, "成功", "商品入库成功！");
+            loadProducts();
         } else {
-            QMessageBox::critical(this, "失败", "商品入库失败，请检查数据库连接！");
+            QMessageBox::critical(this, "失败", "商品入库失败！");
         }
     }
 }
@@ -298,10 +320,7 @@ void Product::onPutProductClicked()
 // 商品出库
 void Product::onTakeProductClicked()
 {
-    // 获取表格中选中的行
     QModelIndexList selectedRows = ui->productTableView->selectionModel()->selectedRows();
-
-    // 校验选中状态
     if (selectedRows.isEmpty()) {
         QMessageBox::warning(this, "警告", "请先选择要出库的商品！");
         return;
@@ -311,41 +330,116 @@ void Product::onTakeProductClicked()
         return;
     }
 
-    // 获取选中商品的信息（从表格中提取）
-    QModelIndex index = selectedRows.first(); // 获取第一行选中项
-    int row = index.row();                    // 选中行的行号
+    QModelIndex index = selectedRows.first();
+    int row = index.row();
+    int productId = productModel->item(row, 0)->text().toInt();
+    QString productName = productModel->item(row, 1)->text();
+    int currentStock = productModel->item(row, 4)->text().toInt();
 
-    // 从表格模型中提取商品ID、名称、当前库存
-    int productId = productModel->item(row, 0)->text().toInt();       // ID在第0列
-    QString productName = productModel->item(row, 1)->text();          // 名称在第1列
-    int currentStock = productModel->item(row, 4)->text().toInt();     // 库存在第4列
-
-    // 显示出库对话框（指定操作类型为“出库”）
     StockDialog dialog(StockOperation::Out, productName, currentStock, this);
     if (dialog.exec() == QDialog::Accepted) {
-        // 获取出库数量（通过对话框接口）
-        auto stockChanges = dialog.getStockChanges();
-        if (stockChanges.isEmpty()) {
-            QMessageBox::warning(this, "错误", "未获取到出库信息！");
-            return;
-        }
-
-        // 调用数据库接口更新库存（出库为负数，直接使用对话框返回的负值）
-        bool updateSuccess = dbManager->updateProductStock(
-            stockChanges.first().first,  // 商品ID
-            stockChanges.first().second   // 出库数量（负数，由对话框返回）
-            );
-
-        if (updateSuccess) {
-            QMessageBox::information(this, "成功",
-                                     QString("商品出库成功！\n出库数量：%1\n更新后库存：%2")
-                                         .arg(-stockChanges.first().second)  // 负数转正数显示
-                                         .arg(currentStock + stockChanges.first().second)); // 库存减少
-            loadProducts(); // 刷新表格数据
+        int amount = dialog.getChangeAmount();
+        if (dbManager->updateProductStock(productId, -amount)) {
+            QMessageBox::information(this, "成功", "商品出库成功！");
+            loadProducts();
         } else {
-            QMessageBox::critical(this, "失败", "商品出库失败，请检查数据库连接！");
+            QMessageBox::critical(this, "失败", "商品出库失败！");
         }
     }
+}
+
+// 在 Product.cpp 中实现数据导出函数
+void Product::onExportDataClicked()
+{
+    QString filePath = QFileDialog::getSaveFileName(this, "导出商品数据", "", "CSV文件 (*.csv);;所有文件 (*)");
+    if (filePath.isEmpty()) return;
+
+    if (exportDataToCSV(filePath)) {
+        QMessageBox::information(this, "导出成功", "商品数据已成功导出");
+    } else {
+        QMessageBox::critical(this, "导出失败", "商品数据导出失败");
+    }
+}
+
+bool Product::exportDataToCSV(const QString& filePath)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return false;
+    }
+
+    QTextStream out(&file);
+    // 写入表头
+    for (int i = 0; i < productModel->columnCount(); ++i) {
+        out << productModel->headerData(i, Qt::Horizontal).toString();
+        if (i < productModel->columnCount() - 1) {
+            out << ",";
+        }
+    }
+    out << "\n";
+
+    // 写入数据
+    for (int row = 0; row < productModel->rowCount(); ++row) {
+        for (int col = 0; col < productModel->columnCount(); ++col) {
+            QStandardItem* item = productModel->item(row, col);
+            if (item) {
+                out << item->text();
+            }
+            if (col < productModel->columnCount() - 1) {
+                out << ",";
+            }
+        }
+        out << "\n";
+    }
+
+    file.close();
+    return true;
+}
+
+// 在 Product.cpp 中实现数据导入函数
+void Product::onImportDataClicked()
+{
+    QString filePath = QFileDialog::getOpenFileName(this, "导入商品数据", "", "CSV文件 (*.csv);;所有文件 (*)");
+    if (filePath.isEmpty()) return;
+
+    if (importDataFromCSV(filePath)) {
+        QMessageBox::information(this, "导入成功", "商品数据已成功导入");
+        loadProducts(); // 重新加载商品数据
+    } else {
+        QMessageBox::critical(this, "导入失败", "商品数据导入失败");
+    }
+}
+
+bool Product::importDataFromCSV(const QString& filePath)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return false;
+    }
+
+    QTextStream in(&file);
+    // 跳过表头
+    in.readLine();
+
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        QStringList fields = line.split(",");
+        if (fields.size() == 6) {
+            QString name = fields[1];
+            QString barcode = fields[2];
+            double price = fields[3].toDouble();
+            int stock = fields[4].toInt();
+            QString category = fields[5];
+
+            if (!dbManager->addProduct(name, barcode, price, stock, category)) {
+                file.close();
+                return false;
+            }
+        }
+    }
+
+    file.close();
+    return true;
 }
 
 // 搜索商品
@@ -354,40 +448,20 @@ void Product::onSearchProductClicked()
     QString keyword = searchLineEdit->text().trimmed();
     QString category = categoryComboBox->currentText();
 
-    if (keyword.isEmpty() && category == "全部") {
-        loadProducts(); // 无搜索条件时加载全部
-        return;
-    }
-
-    searchProducts(keyword, category);
-}
-
-// 搜索商品实现
-void Product::searchProducts(const QString &keyword, const QString &category)
-{
     productModel->removeRows(0, productModel->rowCount());
-    QList<QMap<QString, QVariant>> products;
 
+    QList<QMap<QString, QVariant>> products;
     if (category == "全部") {
-        // 按名称搜索（无关键词则加载全部）
-        products = keyword.isEmpty() ?
-                       dbManager->getAllProducts() :
-                       dbManager->getProductsByName(keyword);
+        products = dbManager->searchProducts(keyword);
     } else {
-        // 先按分类筛选，再按名称筛选
-        QList<QMap<QString, QVariant>> categoryProducts = dbManager->getProductsByCategory(category);
-        if (keyword.isEmpty()) {
-            products = categoryProducts;
-        } else {
-            foreach (const auto& product, categoryProducts) {
-                if (product["name"].toString().contains(keyword, Qt::CaseInsensitive)) {
-                    products.append(product);
-                }
+        QList<QMap<QString, QVariant>> allProducts = dbManager->searchProducts(keyword);
+        for (const auto& product : allProducts) {
+            if (product["category"].toString() == category) {
+                products.append(product);
             }
         }
     }
 
-    // 填充表格
     for (const auto& product : products) {
         QList<QStandardItem*> items;
         items.append(new QStandardItem(product["id"].toString()));
@@ -411,100 +485,30 @@ void Product::searchProducts(const QString &keyword, const QString &category)
     }
 }
 
-// 导入数据
-void Product::onImportDataClicked()
-{
-    QString filePath = QFileDialog::getOpenFileName(
-        this, "选择导入文件", "", "CSV文件 (*.csv);;所有文件 (*)"
-        );
-
-    if (filePath.isEmpty()) return;
-
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "错误", "无法打开文件！");
-        return;
-    }
-
-    QTextStream in(&file);
-    QString header = in.readLine(); // 跳过标题行
-
-    int successCount = 0;
-    int failCount = 0;
-
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        QStringList fields = line.split(',');
-
-        if (fields.size() >= 5) {
-            QString name = fields[0].trimmed();
-            QString barcode = fields[1].trimmed();
-            double price = fields[2].trimmed().toDouble();
-            int stock = fields[3].trimmed().toInt();
-            QString category = fields[4].trimmed();
-
-            if (dbManager->addProduct(name, barcode, price, stock, category)) {
-                successCount++;
-            } else {
-                failCount++;
-            }
-        } else {
-            failCount++;
-        }
-    }
-
-    file.close();
-    QMessageBox::information(this, "导入完成",
-                             QString("成功导入 %1 条，失败 %2 条。").arg(successCount).arg(failCount));
-    loadProducts();
-}
-
-// 导出数据
-void Product::onExportDataClicked()
-{
-    QString filePath = QFileDialog::getSaveFileName(
-        this, "选择导出位置", "", "CSV文件 (*.csv);;所有文件 (*)"
-        );
-
-    if (filePath.isEmpty()) return;
-
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "错误", "无法创建文件！");
-        return;
-    }
-
-    QTextStream out(&file);
-    out << "商品名称,条码,价格,库存,分类\n";
-
-    for (int i = 0; i < productModel->rowCount(); ++i) {
-        QString name = productModel->item(i, 1)->text();
-        QString barcode = productModel->item(i, 2)->text();
-        QString price = productModel->item(i, 3)->text();
-        QString stock = productModel->item(i, 4)->text();
-        QString category = productModel->item(i, 5)->text();
-
-        // 处理含逗号的字段
-        if (name.contains(',')) name = "\"" + name + "\"";
-        if (category.contains(',')) category = "\"" + category + "\"";
-
-        out << name << "," << barcode << "," << price << "," << stock << "," << category << "\n";
-    }
-
-    file.close();
-    QMessageBox::information(this, "导出完成", "商品数据已成功导出！");
-}
-
-
+// 返回登录界面
 void Product::onBackToLoginTriggered()
 {
-    emit backToLogin(); // 发送返回登录的信号
-    this->close();      // 关闭商品管理窗口
+    emit backToLogin();
 }
 
-
+// 查看销售统计
 void Product::onViewSalesStatisticsClicked()
 {
     SalesStatisticsDialog dialog(this);
     dialog.exec();
+}
+
+// 显示库存不足的商品提示框
+void Product::showLowStockProducts(const QList<QMap<QString, QVariant>>& lowStockProducts)
+{
+    if (!lowStockProducts.isEmpty()) {
+        QString message = "以下商品库存不足（低于20件）：\n";
+        for (const auto& product : lowStockProducts) {
+            message += QString("ID: %1, 名称: %2, 库存: %3\n")
+                           .arg(product["id"].toString())
+                           .arg(product["name"].toString())
+                           .arg(product["stock"].toString());
+        }
+        QMessageBox::warning(this, "库存不足警告", message);
+    }
 }
