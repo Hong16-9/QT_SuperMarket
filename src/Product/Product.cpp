@@ -410,30 +410,43 @@ void Product::onImportDataClicked()
     }
 }
 
-bool Product::importDataFromCSV(const QString& filePath)
-{
+// Product.cpp
+bool Product::importDataFromCSV(const QString& filePath) {
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return false;
+        return false; // 文件打开失败
     }
 
     QTextStream in(&file);
-    // 跳过表头
-    in.readLine();
+    in.readLine(); // 跳过CSV表头（假设表头是：ID,商品名称,条码,价格,库存,分类）
 
     while (!in.atEnd()) {
         QString line = in.readLine();
-        QStringList fields = line.split(",");
-        if (fields.size() == 6) {
-            QString name = fields[1];
-            QString barcode = fields[2];
-            double price = fields[3].toDouble();
-            int stock = fields[4].toInt();
-            QString category = fields[5];
+        QStringList fields = line.split(","); // 按逗号分割CSV字段
+        if (fields.size() != 6) continue; // 字段数量不对则跳过
 
-            if (!dbManager->addProduct(name, barcode, price, stock, category)) {
+        // 解析CSV字段（注意索引对应表头顺序）
+        QString prodName = fields[1];      // 商品名称（关键匹配项）
+        QString barcode = fields[2];       // 条码
+        double price = fields[3].toDouble();// 价格
+        int importStock = fields[4].toInt();// 导入的库存数量（需要合并的值）
+        QString category = fields[5];      // 分类
+
+        // 核心逻辑：检查数据库中是否存在同名商品
+        QMap<QString, QVariant> existingProd = dbManager->getProductByName(prodName);
+        if (!existingProd.isEmpty()) {
+            // 存在同名商品：更新库存（原库存 + 导入库存）
+            int existingId = existingProd["id"].toInt(); // 已有商品的ID
+            // 调用updateProductStock更新库存（第二个参数是库存变化量，此处为导入的数量）
+            if (!dbManager->updateProductStock(existingId, importStock)) {
                 file.close();
-                return false;
+                return false; // 更新失败则整体导入失败
+            }
+        } else {
+            // 不存在同名商品：直接新增
+            if (!dbManager->addProduct(prodName, barcode, price, importStock, category)) {
+                file.close();
+                return false; // 新增失败则整体导入失败
             }
         }
     }
