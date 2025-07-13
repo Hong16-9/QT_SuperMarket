@@ -327,10 +327,10 @@ QTableView#cartlistView::item:column(0) {
 }</string>
             </property>
             <property name="editTriggers">
-             <set>QAbstractItemView::NoEditTriggers</set>
+             <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
             </property>
             <property name="selectionBehavior">
-             <enum>QAbstractItemView::SelectItems</enum>
+             <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
             </property>
             <attribute name="horizontalHeaderVisible">
              <bool>false</bool>
@@ -399,7 +399,7 @@ QGroupBox#productgroupBox {
       <property name="title">
        <string/>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="1,7">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="1,7,0">
        <item>
         <widget class="QWidget" name="categoryWidget" native="true">
          <property name="sizePolicy">
@@ -477,7 +477,7 @@ QListWidget#productlistWidget::item:focus {
           </size>
          </property>
          <property name="viewMode">
-          <enum>QListView::ListMode</enum>
+          <enum>QListView::ViewMode::IconMode</enum>
          </property>
          <property name="uniformItemSizes">
           <bool>true</bool>
@@ -492,7 +492,7 @@ QListWidget#productlistWidget::item:focus {
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -532,7 +532,7 @@ QListWidget#productlistWidget::item:focus {
      <x>0</x>
      <y>0</y>
      <width>890</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
