@@ -19,13 +19,11 @@
 #include<QDebug>
 #include<QInputDialog>
 #include<QFormLayout>
-<<<<<<< HEAD
 #include<QAbstractButton>
 #include<QTimer>
-=======
 #include<QDialogButtonBox>
 
->>>>>>> master
+
 
 
 
