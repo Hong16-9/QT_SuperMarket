@@ -91,6 +91,10 @@ public:
     //重置月销量
     void resetmonthlysale();
 
+    // 在dbmanager.h的public部分添加
+    QSqlDatabase& getDatabase() { return m_database; }
+
+    bool isBarcodeExists(const QString& barcode);
 private:
     // 事务执行
     bool executeTransaction(const QString& sql, const QVariantList& params = QVariantList());
