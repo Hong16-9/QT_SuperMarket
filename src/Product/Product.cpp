@@ -164,27 +164,58 @@ void Product::loadProducts()
 {
     productModel->removeRows(0, productModel->rowCount());
 
+    // 设置模型使用数值排序
+    productModel->setSortRole(Qt::UserRole + 1); // 使用自定义排序角色
+
     // 从数据库获取所有商品
     QList<QMap<QString, QVariant>> products = dbManager->getAllProducts();
 
     QList<QMap<QString, QVariant>> lowStockProducts; // 存储库存不足的商品
 
     for (const auto& product : products) {
+        int id = product["id"].toInt();
+        QString name = product["name"].toString();
+        QString barcode = product["barcode"].toString();
+        double price = product["price"].toDouble();
+        int stock = product["stock"].toInt();
+        QString category = product["category"].toString();
+
         QList<QStandardItem*> items;
-        items.append(new QStandardItem(product["id"].toString()));
-        items.append(new QStandardItem(product["name"].toString()));
-        items.append(new QStandardItem(product["barcode"].toString()));
-        items.append(new QStandardItem(QString::number(product["price"].toDouble(), 'f', 2)));
+
+        // ID 列 - 数值
+        QStandardItem* idItem = new QStandardItem();
+        idItem->setData(id, Qt::DisplayRole);         // 显示值
+        idItem->setData(id, Qt::UserRole + 1);        // 排序值
+        items.append(idItem);
+
+        // 商品名称 - 字符串
+        items.append(new QStandardItem(name));
+
+        // 条码 - 字符串
+        items.append(new QStandardItem(barcode));
+
+        // 价格列 - 数值
+        QStandardItem* priceItem = new QStandardItem();
+        priceItem->setData(QString::number(price, 'f', 2), Qt::DisplayRole); // 显示格式化文本
+        priceItem->setData(price, Qt::UserRole + 1);  // 排序值
+        priceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter); // 右对齐
+        items.append(priceItem);
+
+        // 库存列 - 数值
+        QStandardItem* stockItem = new QStandardItem();
+        stockItem->setData(stock, Qt::DisplayRole);   // 显示值
+        stockItem->setData(stock, Qt::UserRole + 1);  // 排序值
+        stockItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter); // 右对齐
 
         // 库存不足时标红
-        QStandardItem* stockItem = new QStandardItem(product["stock"].toString());
-        if (product["stock"].toInt() < 20) {
+        if (stock < 20) {
             stockItem->setForeground(Qt::red);
             lowStockProducts.append(product); // 添加到库存不足的商品列表
         }
         items.append(stockItem);
 
-        items.append(new QStandardItem(product["category"].toString()));
+        // 分类 - 字符串
+        items.append(new QStandardItem(category));
 
         // 设置单元格不可编辑
         foreach (QStandardItem* item, items) {
@@ -463,20 +494,50 @@ void Product::onSearchProductClicked()
     }
 
     for (const auto& product : products) {
-        QList<QStandardItem*> items;
-        items.append(new QStandardItem(product["id"].toString()));
-        items.append(new QStandardItem(product["name"].toString()));
-        items.append(new QStandardItem(product["barcode"].toString()));
-        items.append(new QStandardItem(QString::number(product["price"].toDouble(), 'f', 2)));
+        int id = product["id"].toInt();
+        QString name = product["name"].toString();
+        QString barcode = product["barcode"].toString();
+        double price = product["price"].toDouble();
+        int stock = product["stock"].toInt();
+        QString category = product["category"].toString();
 
-        QStandardItem* stockItem = new QStandardItem(product["stock"].toString());
-        if (product["stock"].toInt() < 20) {
+        QList<QStandardItem*> items;
+
+        // ID 列 - 数值
+        QStandardItem* idItem = new QStandardItem();
+        idItem->setData(id, Qt::DisplayRole);         // 显示值
+        idItem->setData(id, Qt::UserRole + 1);        // 排序值
+        items.append(idItem);
+
+        // 商品名称 - 字符串
+        items.append(new QStandardItem(name));
+
+        // 条码 - 字符串
+        items.append(new QStandardItem(barcode));
+
+        // 价格列 - 数值
+        QStandardItem* priceItem = new QStandardItem();
+        priceItem->setData(QString::number(price, 'f', 2), Qt::DisplayRole); // 显示格式化文本
+        priceItem->setData(price, Qt::UserRole + 1);  // 排序值
+        priceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter); // 右对齐
+        items.append(priceItem);
+
+        // 库存列 - 数值
+        QStandardItem* stockItem = new QStandardItem();
+        stockItem->setData(stock, Qt::DisplayRole);   // 显示值
+        stockItem->setData(stock, Qt::UserRole + 1);  // 排序值
+        stockItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter); // 右对齐
+
+        // 库存不足时标红
+        if (stock < 20) {
             stockItem->setForeground(Qt::red);
         }
         items.append(stockItem);
 
-        items.append(new QStandardItem(product["category"].toString()));
+        // 分类 - 字符串
+        items.append(new QStandardItem(category));
 
+        // 设置单元格不可编辑
         foreach (QStandardItem* item, items) {
             item->setEditable(false);
         }
