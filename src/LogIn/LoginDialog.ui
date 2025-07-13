@@ -96,7 +96,8 @@
    </property>
    <property name="font">
     <font>
-     <family>Adobe Arabic</family>
+     <family>黑体</family>
+     <pointsize>14</pointsize>
      <weight>75</weight>
      <bold>true</bold>
     </font>
